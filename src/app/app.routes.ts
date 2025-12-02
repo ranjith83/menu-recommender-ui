@@ -1,3 +1,9 @@
 import { Routes } from '@angular/router';
+import { AppComponent } from './app.component';
 
-export const routes: Routes = [];
+import { MenuRecommenderComponent } from './menu-recommender.component/menu-recommender.component';
+
+export const routes: Routes = [
+  { path: '', component: AppComponent },
+  { path: '', component: MenuRecommenderComponent }
+];

@@ -1,0 +1,292 @@
+/* Copy all content from your existing app.component.css */
+/* This is the same styling as before */
+
+/* Component-specific styles */
+
+/* Rotate animation for advanced options toggle */
+.rotate-45 {
+  transform: rotate(45deg);
+}
+
+/* Smooth transitions for all interactive elements */
+button {
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+/* Focus states for accessibility */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Header gradient animation */
+header {
+  transition: box-shadow 0.3s ease;
+}
+
+/* Filter button hover effects */
+.filter-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.filter-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.filter-button:hover::before {
+  width: 100%;
+  height: 100%;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.12);
+}
+
+/* Input animations */
+input,
+textarea {
+  transition: all 0.2s ease;
+}
+
+input:focus,
+textarea:focus {
+  transform: scale(1.01);
+}
+
+/* Tag animations */
+.tag {
+  animation: tagSlideIn 0.3s ease-out;
+}
+
+@keyframes tagSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Loading spinner enhancement */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fade in animation for results */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gradient background animation */
+.bg-gradient-animated {
+  background-size: 200% 200%;
+  animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Icon animations */
+svg {
+  transition: all 0.2s ease;
+}
+
+button:hover svg {
+  transform: scale(1.1);
+}
+
+/* Recommendation card gradient animation */
+.recommendation-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.recommendation-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(45deg);
+  }
+}
+
+/* Empty state animation */
+.empty-state {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .grid {
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  header .flex {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  button.clear-all {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Custom scrollbar for results area */
+.results-container {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.results-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.results-container::-webkit-scrollbar-track {
+  background: #fef2f2;
+  border-radius: 10px;
+}
+
+.results-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #f97316, #ef4444);
+  border-radius: 10px;
+}
+
+/* Ingredient tag hover effect */
+.ingredient-tag {
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.ingredient-tag:hover {
+  transform: scale(1.05);
+  background-color: #e5e7eb;
+}
+
+/* Price badge enhancement */
+.price-badge {
+  position: relative;
+  overflow: hidden;
+}
+
+.price-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  bottom: -50%;
+  left: -50%;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0)
+  );
+  transform: rotateZ(45deg) translate(-100%, 0);
+  transition: transform 0.6s;
+}
+
+.price-badge:hover::after {
+  transform: rotateZ(45deg) translate(100%, 0);
+}
+
+/* Dietary tag pulse effect */
+.dietary-tag {
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(34, 197, 94, 0);
+  }
+}
