@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
@@ -17,7 +17,7 @@ import { RecommendationService } from '../services/recommendation.service';
   templateUrl: './menu-recommender.component.html',
   styleUrls: ['./menu-recommender.component.css']
 })
-export class MenuRecommenderComponent {
+export class MenuRecommenderComponent implements OnInit {
   // Form state
   query: string = '';
   selectedDietary: string[] = [];
@@ -32,6 +32,19 @@ export class MenuRecommenderComponent {
   recommendation: RecommendationResponse | null = null;
   showAdvanced: boolean = false;
   error: string | null = null;
+  
+  // Pagination state
+  displayedItemsCount: number = 3;
+  itemsPerPage: number = 3;
+  
+  // Carousel state
+  currentCardIndex: number = 0;
+  carouselScrollPosition: number = 0;
+  
+  // Audio for robot
+  private robotAudio: HTMLAudioElement | null = null;
+  
+  @ViewChild('carouselContainer') carouselContainer!: ElementRef;
 
   // Options
   dietaryOptions: DietaryOption[] = [
@@ -57,6 +70,40 @@ export class MenuRecommenderComponent {
   occasions: string[] = ['Casual', 'Date Night', 'Family Meal', 'Business', 'Celebration', 'Quick Bite'];
 
   constructor(private recommendationService: RecommendationService) {}
+
+  ngOnInit(): void {
+    console.log('MenuRecommenderComponent initialized');
+    // Initialize robot sound
+    this.initRobotSound();
+  }
+  
+  initRobotSound(): void {
+    // Create a simple beep sound using Web Audio API
+    // This creates a robot-like beep without external files
+  }
+  
+  playRobotSound(): void {
+    // Create Web Audio API context for robot sound
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create oscillator for beep sound
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Robot beep sound configuration
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+  }
 
   toggleSelection(item: string, list: string[]): void {
     const index = list.indexOf(item);
@@ -97,6 +144,9 @@ export class MenuRecommenderComponent {
     this.query = '';
     this.recommendation = null;
     this.error = null;
+    this.displayedItemsCount = 3;
+    this.currentCardIndex = 0;
+    this.carouselScrollPosition = 0;
   }
 
   hasActiveFilters(): boolean {
@@ -150,7 +200,11 @@ export class MenuRecommenderComponent {
 
     this.recommendationService.getRecommendations(request).subscribe({
       next: (response) => {
+        console.log('Received recommendations:', response);
         this.recommendation = response;
+        this.displayedItemsCount = 3;
+        this.currentCardIndex = 0;
+        this.carouselScrollPosition = 0;
         this.loading = false;
       },
       error: (error) => {
@@ -167,5 +221,90 @@ export class MenuRecommenderComponent {
 
   isSelected(item: string, list: string[]): boolean {
     return list.includes(item);
+  }
+
+  // Pagination Methods
+  
+  // Get currently displayed items
+  getDisplayedItems(): any[] {
+    if (!this.recommendation || !this.recommendation.matchedItems) {
+      return [];
+    }
+    return this.recommendation.matchedItems.slice(0, this.displayedItemsCount);
+  }
+
+  // Check if there are more items to show
+  hasMoreItems(): boolean {
+    if (!this.recommendation || !this.recommendation.matchedItems) {
+      return false;
+    }
+    return this.displayedItemsCount < this.recommendation.matchedItems.length;
+  }
+
+  // Load more items
+  loadMore(): void {
+    if (this.hasMoreItems()) {
+      this.displayedItemsCount += this.itemsPerPage;
+    }
+  }
+
+  // Get remaining items count
+  getRemainingItemsCount(): number {
+    if (!this.recommendation || !this.recommendation.matchedItems) {
+      return 0;
+    }
+    const remaining = this.recommendation.matchedItems.length - this.displayedItemsCount;
+    return Math.max(0, remaining);
+  }
+  
+  // Carousel Navigation Methods
+  nextCard(): void {
+    if (this.recommendation && this.recommendation.matchedItems) {
+      if (this.currentCardIndex < this.recommendation.matchedItems.length - 1) {
+        this.currentCardIndex++;
+      }
+    }
+  }
+  
+  previousCard(): void {
+    if (this.currentCardIndex > 0) {
+      this.currentCardIndex--;
+    }
+  }
+  
+  goToCard(index: number): void {
+    this.currentCardIndex = index;
+  }
+  
+  // Netflix-style Carousel Methods
+  scrollCarouselLeft(): void {
+    if (this.carouselContainer) {
+      const container = this.carouselContainer.nativeElement;
+      const scrollAmount = 300; // Scroll by ~one card width
+      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    }
+  }
+  
+  scrollCarouselRight(): void {
+    if (this.carouselContainer) {
+      const container = this.carouselContainer.nativeElement;
+      const scrollAmount = 300; // Scroll by ~one card width
+      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }
+  
+  onCarouselScroll(): void {
+    if (this.carouselContainer) {
+      this.carouselScrollPosition = this.carouselContainer.nativeElement.scrollLeft;
+    }
+  }
+  
+  hasMoreItemsToScroll(): boolean {
+    if (!this.carouselContainer || !this.recommendation?.matchedItems) {
+      return false;
+    }
+    const container = this.carouselContainer.nativeElement;
+    const maxScroll = container.scrollWidth - container.clientWidth;
+    return this.carouselScrollPosition < maxScroll - 10; // 10px threshold
   }
 }

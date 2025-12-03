@@ -26,6 +26,7 @@ export interface RecommendationResponse {
   recommendation: string;
   matchedItems: MenuItem[];
   timestamp: Date;
+  totalMatches: number;
 }
 
 export interface DietaryOption {
