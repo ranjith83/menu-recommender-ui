@@ -13,7 +13,30 @@ export const routes: Routes = [
     component: MenuRecommenderComponent,
     title: 'Menu - AI-Powered Recommendations'
   },
-  
+  // Basket page - Client-side only
+  {
+    path: 'basket',
+    component: BasketComponent,
+    title: 'Your Basket - Menu Genius'
+  },
+  // Order status - Client-side only
+  {
+    path: 'order-status',
+    component: OrderStatusComponent,
+    title: 'Order Status - Menu Genius'
+  },
+  // Kitchen login - Client-side only
+  {
+    path: 'kitchen-login',
+    component: KitchenLoginComponent,
+    title: 'Kitchen Login - Menu Genius'
+  },
+  // Kitchen dashboard - Client-side only
+  {
+    path: 'kitchen',
+    component: KitchenDashboardComponent,
+    title: 'Kitchen Dashboard - Menu Genius'
+  },
   // Root path
   {
     path: '',
