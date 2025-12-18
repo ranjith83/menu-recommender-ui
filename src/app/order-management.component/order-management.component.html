@@ -1,0 +1,172 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <!-- Stats Bar -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Pending</p>
+          <p class="text-2xl font-bold text-yellow-600">{{ getOrdersByStatus('Pending').length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-600">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Preparing</p>
+          <p class="text-2xl font-bold text-blue-600">{{ getOrdersByStatus('Preparing').length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Ready</p>
+          <p class="text-2xl font-bold text-green-600">{{ getOrdersByStatus('Ready').length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-gray-600">Delivering</p>
+          <p class="text-2xl font-bold text-purple-600">{{ getOrdersByStatus('Delivering').length }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-600">
+            <rect width="16" height="13" x="6" y="4" rx="2"></rect>
+            <path d="m22 7-7.5 4L7 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Orders Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div *ngFor="let order of activeOrders" 
+         class="bg-white rounded-xl shadow-sm border-2 hover:shadow-md transition-all"
+         [class.border-yellow-300]="order.status === 'Pending'"
+         [class.border-blue-300]="order.status === 'Preparing'"
+         [class.border-green-300]="order.status === 'Ready'"
+         [class.border-purple-300]="order.status === 'Delivering'">
+      
+      <!-- Order Header -->
+      <div class="p-4 border-b border-gray-200"
+           [class.bg-yellow-50]="order.status === 'Pending'"
+           [class.bg-blue-50]="order.status === 'Preparing'"
+           [class.bg-green-50]="order.status === 'Ready'"
+           [class.bg-purple-50]="order.status === 'Delivering'">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-bold text-gray-900">Table {{ order.tableNumber }}</span>
+            <span class="px-2 py-1 text-xs font-medium rounded-full"
+                  [class.bg-yellow-200]="order.status === 'Pending'"
+                  [class.text-yellow-800]="order.status === 'Pending'"
+                  [class.bg-blue-200]="order.status === 'Preparing'"
+                  [class.text-blue-800]="order.status === 'Preparing'"
+                  [class.bg-green-200]="order.status === 'Ready'"
+                  [class.text-green-800]="order.status === 'Ready'"
+                  [class.bg-purple-200]="order.status === 'Delivering'"
+                  [class.text-purple-800]="order.status === 'Delivering'">
+              {{ order.status }}
+            </span>
+          </div>
+          <span class="text-xs text-gray-600">{{ order.id.substring(0, 8) }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-gray-600">{{ order.customerName }}</span>
+          <span class="text-gray-500">{{ getTimeSince(order.createdAt) }}</span>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div class="p-4">
+        <div class="space-y-2 mb-4">
+          <div *ngFor="let item of order.items" class="flex justify-between items-start text-sm">
+            <div class="flex-1">
+              <span class="font-medium text-gray-900">{{ item.quantity }}× {{ item.menuItem.name }}</span>
+              <p *ngIf="item.specialInstructions" class="text-xs text-orange-600 mt-1">
+                Note: {{ item.specialInstructions }}
+              </p>
+            </div>
+            <span class="text-gray-600 ml-2">${{ (item.menuItem.price * item.quantity).toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 pt-3 mb-4">
+          <div class="flex justify-between font-bold text-gray-900">
+            <span>Total</span>
+            <span>${{ order.totalAmount.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <!-- Status Update Buttons -->
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            *ngIf="order.status === 'Pending'"
+            (click)="updateStatus(order.id, 'Preparing')"
+            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all">
+            Start Preparing
+          </button>
+
+          <button
+            *ngIf="order.status === 'Preparing'"
+            (click)="updateStatus(order.id, 'Ready')"
+            class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-all">
+            Mark Ready
+          </button>
+
+          <button
+            *ngIf="order.status === 'Ready'"
+            (click)="updateStatus(order.id, 'Delivering')"
+            class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium rounded-lg transition-all">
+            Out for Delivery
+          </button>
+
+          <button
+            *ngIf="order.status === 'Delivering'"
+            (click)="updateStatus(order.id, 'Completed')"
+            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg transition-all">
+            Complete
+          </button>
+
+          <button
+            (click)="updateStatus(order.id, 'Cancelled')"
+            class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-all">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="activeOrders.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-400">
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+      <path d="M7 2v20"></path>
+      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+    </svg>
+    <h3 class="text-xl font-bold text-gray-900 mb-2">No Active Orders</h3>
+    <p class="text-gray-600">All orders have been completed or there are no new orders</p>
+  </div>
+</div>

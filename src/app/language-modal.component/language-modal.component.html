@@ -1,0 +1,85 @@
+<div *ngIf="isOpen" 
+     class="language-modal-overlay"
+     (click)="onBackdropClick($event)">
+  <!-- Backdrop -->
+  <div class="language-modal-backdrop"></div>
+  
+  <!-- Modal Container -->
+  <div class="language-modal-content" 
+       (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-orange-500 to-red-500 p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-white bg-opacity-20 p-2 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+              <path d="M2 12h20"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold">Select Your Language</h2>
+            <p class="text-orange-100 text-sm">Choose your preferred language for recommendations</p>
+          </div>
+        </div>
+        <button 
+          (click)="close()" 
+          class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all"
+          type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Language Grid -->
+    <div class="p-6 overflow-y-auto max-h-[calc(85vh-180px)]">
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <button
+          *ngFor="let lang of languages"
+          (click)="selectLanguage(lang)"
+          [class.ring-4]="selectedLanguage?.code === lang.code"
+          [class.ring-orange-500]="selectedLanguage?.code === lang.code"
+          [class.bg-orange-50]="selectedLanguage?.code === lang.code"
+          type="button"
+          class="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-xl hover:border-orange-400 hover:bg-orange-50 transition-all group cursor-pointer">
+          <span class="text-4xl group-hover:scale-110 transition-transform">{{ lang.flag }}</span>
+          <span class="font-semibold text-gray-900 text-sm">{{ lang.name }}</span>
+          <span class="text-xs text-gray-600">{{ lang.nativeName }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="border-t border-gray-200 p-4 bg-gray-50">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-blue-600">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+          <span>Your preference will be saved</span>
+        </div>
+        <div class="flex gap-3">
+          <button
+            (click)="close()"
+            type="button"
+            class="px-6 py-2 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-all">
+            Cancel
+          </button>
+          <button
+            (click)="confirm()"
+            [disabled]="!selectedLanguage"
+            type="button"
+            class="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -16,7 +16,7 @@ export class RecommendationService {
     // Use mock data for prototype/testing
     if (this.useMockData) {
       return this.getMockRecommendations(request).pipe(
-        delay(1000) // Simulate API delay
+        delay(10) // Simulate API delay
       );
     }
 

@@ -1,0 +1,277 @@
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <!-- Menu Controls -->
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-6 border border-gray-200">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <!-- Search and Filter -->
+      <div class="flex flex-1 gap-3">
+        <div class="flex-1 relative">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.3-4.3"></path>
+          </svg>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (input)="onSearchChange()"
+            placeholder="Search menu items..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+        </div>
+        
+        <select
+          [(ngModel)]="selectedCategory"
+          (change)="onCategoryChange()"
+          class="px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+          <option value="all">All Categories</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <!-- Add Button -->
+      <button
+        (click)="openMenuItemForm()"
+        class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-medium transition-all shadow-md">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"></path>
+          <path d="M12 5v14"></path>
+        </svg>
+        Add Menu Item
+      </button>
+    </div>
+
+    <div class="mt-3 text-sm text-gray-600">
+      Showing {{ filteredMenuItems.length }} of {{ menuItems.length }} items
+    </div>
+  </div>
+
+  <!-- Menu Items Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let item of filteredMenuItems" class="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all overflow-hidden">
+      <!-- Item Image -->
+      <div class="h-32 bg-gradient-to-br from-orange-100 to-red-100 flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500">
+          <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+          <path d="M7 2v20"></path>
+          <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+        </svg>
+      </div>
+
+      <!-- Item Content -->
+      <div class="p-4">
+        <div class="flex justify-between items-start mb-2">
+          <h3 class="font-bold text-gray-900 text-lg flex-1">{{ item.name }}</h3>
+          <span class="text-lg font-bold text-orange-600 ml-2">${{ item.price.toFixed(2) }}</span>
+        </div>
+
+        <p class="text-sm text-gray-600 mb-3 line-clamp-2">{{ item.description }}</p>
+
+        <div class="flex gap-2 mb-3 text-xs flex-wrap">
+          <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">{{ item.category }}</span>
+          <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded">{{ item.cuisine }}</span>
+          <span *ngIf="item.calories" class="px-2 py-1 bg-blue-100 text-blue-800 rounded">{{ item.calories }} cal</span>
+        </div>
+
+        <div class="flex flex-wrap gap-1 mb-3">
+          <span *ngFor="let tag of item.dietaryTags" class="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full">
+            {{ tag }}
+          </span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <button
+            (click)="openMenuItemForm(item)"
+            class="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-all">
+            Edit
+          </button>
+          <button
+            (click)="deleteMenuItem(item)"
+            class="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-all">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredMenuItems.length === 0" class="bg-white rounded-xl shadow-sm p-12 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-400">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.3-4.3"></path>
+    </svg>
+    <h3 class="text-xl font-bold text-gray-900 mb-2">No Menu Items Found</h3>
+    <p class="text-gray-600 mb-4">{{ searchQuery ? 'Try adjusting your search or filters' : 'Add your first menu item to get started' }}</p>
+    <button
+      (click)="openMenuItemForm()"
+      class="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl font-medium transition-all shadow-lg">
+      Add Menu Item
+    </button>
+  </div>
+</div>
+
+<!-- Menu Item Form Modal -->
+<div *ngIf="showMenuItemForm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="sticky top-0 bg-white border-b border-gray-200 p-6 flex items-center justify-between z-10">
+      <h3 class="text-xl font-bold text-gray-900">
+        {{ editingMenuItem ? 'Edit Menu Item' : 'Add New Menu Item' }}
+      </h3>
+      <button (click)="closeMenuItemForm()" class="text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <form (ngSubmit)="saveMenuItem()" class="p-6 space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Name -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="menuForm.name"
+            name="name"
+            required
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+        </div>
+
+        <!-- Description -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+          <textarea
+            [(ngModel)]="menuForm.description"
+            name="description"
+            required
+            rows="3"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"></textarea>
+        </div>
+
+        <!-- Category -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+          <select
+            [(ngModel)]="menuForm.category"
+            name="category"
+            required
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+
+        <!-- Cuisine -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Cuisine *</label>
+          <select
+            [(ngModel)]="menuForm.cuisine"
+            name="cuisine"
+            required
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+            <option *ngFor="let cui of cuisines" [value]="cui">{{ cui }}</option>
+          </select>
+        </div>
+
+        <!-- Price -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Price ($) *</label>
+          <input
+            type="number"
+            [(ngModel)]="menuForm.price"
+            name="price"
+            required
+            step="0.01"
+            min="0"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+        </div>
+
+        <!-- Calories -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Calories</label>
+          <input
+            type="number"
+            [(ngModel)]="menuForm.calories"
+            name="calories"
+            min="0"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+        </div>
+
+        <!-- Spice Level -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Spice Level</label>
+          <select
+            [(ngModel)]="menuForm.spiceLevel"
+            name="spiceLevel"
+            class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+            <option *ngFor="let level of spiceLevels" [value]="level">{{ level }}</option>
+          </select>
+        </div>
+
+        <!-- Dietary Tags -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Dietary Tags</label>
+          <div class="flex flex-wrap gap-2">
+            <button
+              *ngFor="let tag of availableDietaryTags"
+              type="button"
+              (click)="toggleDietaryTag(tag)"
+              [class.bg-green-500]="menuForm.dietaryTags.includes(tag)"
+              [class.text-white]="menuForm.dietaryTags.includes(tag)"
+              [class.bg-gray-200]="!menuForm.dietaryTags.includes(tag)"
+              [class.text-gray-700]="!menuForm.dietaryTags.includes(tag)"
+              class="px-3 py-1 rounded-full text-sm font-medium transition-colors">
+              {{ tag }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Ingredients -->
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Ingredients</label>
+          <div class="flex gap-2 mb-2">
+            <input
+              #ingredientInput
+              type="text"
+              placeholder="Add ingredient..."
+              (keyup.enter)="addIngredient(ingredientInput)"
+              class="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" />
+            <button
+              type="button"
+              (click)="addIngredient(ingredientInput)"
+              class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors">
+              Add
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span
+              *ngFor="let ingredient of menuForm.ingredients"
+              class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+              {{ ingredient }}
+              <button
+                type="button"
+                (click)="removeIngredient(ingredient)"
+                class="ml-1 text-gray-500 hover:text-red-600">
+                ×
+              </button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="flex gap-3 pt-4 border-t border-gray-200">
+        <button
+          type="button"
+          (click)="closeMenuItemForm()"
+          class="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-lg font-medium transition-colors">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-medium transition-all">
+          {{ editingMenuItem ? 'Update' : 'Create' }} Menu Item
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

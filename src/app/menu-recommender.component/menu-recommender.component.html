@@ -1,54 +1,101 @@
 <div class="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">
   <!-- Header -->
-  <header class="bg-white shadow-sm border-b border-orange-100">
-    <div class="max-w-5xl mx-auto px-4 py-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <div class="bg-gradient-to-br from-orange-500 to-red-500 p-2 rounded-xl">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
-              <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
-              <path d="M7 2v20"></path>
-              <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
-            </svg>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold text-gray-900">Menu Genius</h1>
-            <p class="text-xs text-gray-600">AI-Powered Recommendations</p>
-          </div>
+  <header class="bg-white shadow-sm border-b border-orange-100 sticky top-0 z-50">
+  <div class="max-w-5xl mx-auto px-4 py-3">
+    <div class="flex items-center justify-between gap-3">
+      <!-- Logo Section -->
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <div class="bg-gradient-to-br from-orange-500 to-red-500 p-2 rounded-xl">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
+            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+            <path d="M7 2v20"></path>
+            <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+          </svg>
         </div>
-        <button
+        <div class="hidden sm:block">
+          <h1 class="text-lg font-bold text-gray-900 leading-tight">Menu Genie</h1>
+          <p class="text-xs text-gray-600">AI-Powered</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons - Better spacing -->
+      <div class="flex items-center gap-2 flex-wrap justify-end">
+        <!-- Order Complete Button -->
+        <button 
+          *ngIf="currentOrder && currentOrder.status === 'Completed'" 
+          (click)="goToOrderStatus()"
+          class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg transition-all font-semibold shadow-md text-sm whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span class="hidden sm:inline">Done</span>
+        </button>
+
+        <!-- Language Button -->
+        <button 
+          (click)="openLanguageModal()"
+          class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white rounded-lg transition-all font-semibold shadow-md whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+            <path d="M2 12h20"></path>
+          </svg>
+          <span class="text-sm font-bold">{{ selectedLanguage?.code?.toUpperCase() || 'EN' }}</span>
+        </button>
+
+        <!-- Basket Button with improved badge positioning -->
+        <button 
+          (click)="goToBasket()" 
+          [class.ring-2]="basketCount > 0" 
+          [class.ring-amber-400]="basketCount > 0"
+          class="relative px-3 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-lg transition-all font-semibold shadow-md whitespace-nowrap">
+          <div class="flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="8" cy="21" r="1"></circle>
+              <circle cx="19" cy="21" r="1"></circle>
+              <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path>
+            </svg>
+            <span class="text-sm font-bold hidden sm:inline">Basket</span>
+          </div>
+          <!-- Improved badge with higher z-index -->
+          <span 
+            *ngIf="basketCount > 0" 
+            class="absolute -top-2 -right-2 min-w-[22px] h-[22px] bg-red-600 text-white text-xs font-black rounded-full flex items-center justify-center px-1.5 shadow-lg border-2 border-white"
+            style="z-index: 100;">
+            {{ basketCount }}
+          </span>
+        </button>
+        
+        <!-- Clear Button - Moved slightly away -->
+        <button 
           (click)="clearFilters()"
-          class="flex items-center gap-2 px-3 py-2 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-lg font-semibold shadow-md transition-all whitespace-nowrap ml-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="M18 6 6 18"></path>
             <path d="m6 6 12 12"></path>
           </svg>
-          Clear All
+          <span class="hidden sm:inline text-sm font-bold">Clear</span>
         </button>
       </div>
     </div>
-  </header>
+  </div>
+</header>
 
   <main class="max-w-5xl mx-auto px-4 py-6">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Left Panel - Filters -->
+      <!-- Left Panel - Filters (same as before) -->
       <div class="lg:col-span-1 space-y-4">
-        <!-- Dietary Preferences -->
         <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
           <div class="flex items-center gap-2 mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-600">
               <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
               <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
             </svg>
-            <h3 class="font-semibold text-gray-900 text-sm">Dietary Preferences</h3>
+            <h3 class="font-semibold text-gray-900 text-sm">Dietary</h3>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button
-              *ngFor="let option of dietaryOptions"
-              (click)="toggleDietary(option.id)"
-              [class]="isSelected(option.id, selectedDietary) 
-                ? 'bg-green-100 text-green-800 ring-2 ring-green-300' 
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+            <button *ngFor="let option of dietaryOptions" (click)="toggleDietary(option.id)"
+              [class]="isSelected(option.id, selectedDietary) ? 'bg-green-100 text-green-800 ring-2 ring-green-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
               class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all">
               <span class="text-sm">{{ option.icon }}</span>
               <span>{{ option.label }}</span>
@@ -56,21 +103,16 @@
           </div>
         </div>
 
-        <!-- Food Preferences -->
         <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
           <div class="flex items-center gap-2 mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-red-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-red-600">
               <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
             </svg>
-            <h3 class="font-semibold text-gray-900 text-sm">Food Preferences</h3>
+            <h3 class="font-semibold text-gray-900 text-sm">Preferences</h3>
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button
-              *ngFor="let option of preferenceOptions"
-              (click)="togglePreference(option.id)"
-              [class]="isSelected(option.id, selectedPreferences) 
-                ? 'bg-red-100 text-red-800 ring-2 ring-red-300' 
-                : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+            <button *ngFor="let option of preferenceOptions" (click)="togglePreference(option.id)"
+              [class]="isSelected(option.id, selectedPreferences) ? 'bg-red-100 text-red-800 ring-2 ring-red-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
               class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium transition-all">
               <span class="text-sm">{{ option.icon }}</span>
               <span>{{ option.label }}</span>
@@ -78,10 +120,9 @@
           </div>
         </div>
 
-        <!-- Budget -->
         <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
           <div class="flex items-center gap-2 mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-600">
               <line x1="12" x2="12" y1="2" y2="22"></line>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
             </svg>
@@ -89,184 +130,98 @@
           </div>
           <div class="relative">
             <span class="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
-            <input
-              type="number"
-              [(ngModel)]="maxPrice"
-              placeholder="Max price"
-              class="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-              step="0.01" />
+            <input type="number" [(ngModel)]="maxPrice" placeholder="Max price"
+              class="w-full pl-6 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent" step="0.01" />
           </div>
         </div>
 
-        <!-- Advanced Options Toggle -->
-        <button
-          (click)="toggleAdvanced()"
+        <button (click)="toggleAdvanced()"
           class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg text-xs font-medium text-gray-700 transition-colors">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="14" 
-            height="14" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            stroke-width="2" 
-            stroke-linecap="round" 
-            stroke-linejoin="round"
-            [class.rotate-45]="showAdvanced"
-            class="transition-transform">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            [class.rotate-45]="showAdvanced" class="transition-transform">
             <path d="M5 12h14"></path>
             <path d="M12 5v14"></path>
           </svg>
-          Advanced Options
+          Advanced
         </button>
 
-        <!-- Advanced Options Content -->
         <div *ngIf="showAdvanced" class="space-y-3 animate-fade-in">
-          <!-- Meal Time -->
           <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
             <h3 class="font-semibold text-gray-900 text-sm mb-2">Meal Time</h3>
             <div class="flex flex-wrap gap-2">
-              <button
-                *ngFor="let time of mealTimes"
-                (click)="selectMealTime(time)"
-                [class]="mealTime === time 
-                  ? 'bg-purple-100 text-purple-800 ring-2 ring-purple-300' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
-                class="px-2 py-1 rounded-lg text-xs font-medium transition-all">
-                {{ time }}
-              </button>
+              <button *ngFor="let time of mealTimes" (click)="selectMealTime(time)"
+                [class]="mealTime === time ? 'bg-purple-100 text-purple-800 ring-2 ring-purple-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+                class="px-2 py-1 rounded-lg text-xs font-medium transition-all">{{ time }}</button>
             </div>
           </div>
 
-          <!-- Weather -->
-          <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div class="flex items-center gap-2 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-yellow-600">
-                <path d="M12 2v10"></path>
-                <path d="m4.93 10.93 1.41 1.41"></path>
-                <path d="M2 18h2"></path>
-                <path d="M20 18h2"></path>
-                <path d="m19.07 10.93-1.41 1.41"></path>
-                <path d="M22 22H2"></path>
-                <path d="m8 6 4-4 4 4"></path>
-                <path d="M16 18a4 4 0 0 0-8 0"></path>
-              </svg>
-              <h3 class="font-semibold text-gray-900">Weather</h3>
-            </div>
+          <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <h3 class="font-semibold text-gray-900 text-sm mb-2">Weather</h3>
             <div class="flex flex-wrap gap-2">
-              <button
-                *ngFor="let w of weatherOptions"
-                (click)="selectWeather(w)"
-                [class]="weather === w 
-                  ? 'bg-yellow-100 text-yellow-800 ring-2 ring-yellow-300' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
-                class="px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                {{ w }}
-              </button>
+              <button *ngFor="let w of weatherOptions" (click)="selectWeather(w)"
+                [class]="weather === w ? 'bg-yellow-100 text-yellow-800 ring-2 ring-yellow-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+                class="px-2 py-1 rounded-lg text-xs font-medium transition-all">{{ w }}</button>
             </div>
           </div>
 
-          <!-- Occasion -->
-          <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
-            <div class="flex items-center gap-2 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-pink-600">
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
-                <line x1="16" x2="16" y1="2" y2="6"></line>
-                <line x1="8" x2="8" y1="2" y2="6"></line>
-                <line x1="3" x2="21" y1="10" y2="10"></line>
-              </svg>
-              <h3 class="font-semibold text-gray-900">Occasion</h3>
-            </div>
+          <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-100">
+            <h3 class="font-semibold text-gray-900 text-sm mb-2">Occasion</h3>
             <div class="flex flex-wrap gap-2">
-              <button
-                *ngFor="let occ of occasions"
-                (click)="selectOccasion(occ)"
-                [class]="occasion === occ 
-                  ? 'bg-pink-100 text-pink-800 ring-2 ring-pink-300' 
-                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
-                class="px-3 py-2 rounded-lg text-sm font-medium transition-all">
-                {{ occ }}
-              </button>
+              <button *ngFor="let occ of occasions" (click)="selectOccasion(occ)"
+                [class]="occasion === occ ? 'bg-pink-100 text-pink-800 ring-2 ring-pink-300' : 'bg-gray-50 text-gray-700 hover:bg-gray-100'"
+                class="px-2 py-1 rounded-lg text-xs font-medium transition-all">{{ occ }}</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Panel - Query and Results -->
+      <!-- Right Panel -->
       <div class="lg:col-span-2 space-y-6">
-        <!-- Query Input -->
         <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
           <div class="space-y-4">
             <div>
               <label class="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-900">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-orange-600">
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
-                  <path d="M5 3v4"></path>
-                  <path d="M19 17v4"></path>
-                  <path d="M3 5h4"></path>
-                  <path d="M17 19h4"></path>
                 </svg>
-                What are you craving today?
+                What are you craving?
               </label>
-              <textarea
-                [(ngModel)]="query"
-                placeholder="e.g., 'I want something light and healthy' or 'Surprise me with something spicy!'"
-                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                rows="3"></textarea>
+              <textarea [(ngModel)]="query" placeholder="e.g., 'Something light and healthy'"
+                class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none" rows="3"></textarea>
             </div>
 
-            <!-- Active Filters Display -->
             <div *ngIf="hasActiveFilters()" class="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg">
-              <span class="text-xs font-medium text-gray-600">Active filters:</span>
-              <span *ngFor="let d of selectedDietary" class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                {{ d }}
-              </span>
-              <span *ngFor="let p of selectedPreferences" class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                {{ p }}
-              </span>
-              <span *ngIf="maxPrice" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                Under ${{ maxPrice }}
-              </span>
-              <span *ngIf="mealTime" class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                {{ mealTime }}
-              </span>
-              <span *ngIf="weather" class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                {{ weather }}
-              </span>
-              <span *ngIf="occasion" class="px-2 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">
-                {{ occasion }}
-              </span>
+              <span class="text-xs font-medium text-gray-600">Active:</span>
+              <span *ngFor="let d of selectedDietary" class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">{{ d }}</span>
+              <span *ngFor="let p of selectedPreferences" class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">{{ p }}</span>
+              <span *ngIf="maxPrice" class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Under ${{ maxPrice }}</span>
+              <span *ngIf="mealTime" class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">{{ mealTime }}</span>
+              <span *ngIf="weather" class="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">{{ weather }}</span>
+              <span *ngIf="occasion" class="px-2 py-1 bg-pink-100 text-pink-800 text-xs rounded-full">{{ occasion }}</span>
             </div>
 
-            <!-- Error Message -->
-            <div *ngIf="error" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-              {{ error }}
-            </div>
+            <div *ngIf="error" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">{{ error }}</div>
 
-            <button
-              (click)="onSubmit()"
-              [disabled]="loading || !query"
+            <button (click)="onSubmit()" [disabled]="loading || !query"
               class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold rounded-xl shadow-lg shadow-orange-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-              <svg *ngIf="loading" class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg *ngIf="loading" class="animate-spin" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
               </svg>
-              <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg *ngIf="!loading" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m22 2-7 20-4-9-9-4Z"></path>
                 <path d="M22 2 11 13"></path>
               </svg>
-              <span *ngIf="loading">Getting Recommendations...</span>
-              <span *ngIf="!loading">Get AI Recommendations</span>
+              <span>{{ loading ? 'Getting Recommendations...' : 'Get AI Recommendations' }}</span>
             </button>
           </div>
         </div>
 
         <!-- Results -->
         <div *ngIf="recommendation" class="space-y-4 animate-fade-in">
-          <!-- AI Recommendation Text -->
           <div class="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl shadow-sm p-6 border border-orange-100">
             <div class="flex items-start gap-3 mb-4">
               <div class="bg-gradient-to-br from-orange-500 to-red-500 p-2 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white">
                   <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                 </svg>
               </div>
@@ -275,45 +230,34 @@
                 <p class="text-sm text-gray-600">Based on your preferences</p>
               </div>
             </div>
-            <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-line">
-              {{ recommendation.recommendation }}
-            </div>
+            <div class="prose prose-sm max-w-none text-gray-700 whitespace-pre-line">{{ recommendation.recommendation }}</div>
           </div>
 
-          <!-- Menu Items - Netflix Style with Navigation Arrows -->
+          <!-- Menu Items Carousel -->
           <div *ngIf="recommendation.matchedItems && recommendation.matchedItems.length > 0">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-bold text-gray-900 text-lg">Recommended Dishes</h3>
               <span class="text-sm text-gray-600">{{ recommendation.matchedItems.length }} items</span>
             </div>
             
-            <!-- Netflix-style Carousel with Arrows -->
             <div class="netflix-carousel-wrapper">
-              <!-- Left Arrow -->
-              <button 
-                *ngIf="carouselScrollPosition > 0"
-                (click)="scrollCarouselLeft()"
-                class="carousel-nav-button carousel-nav-left">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <button *ngIf="carouselScrollPosition > 0" (click)="scrollCarouselLeft()" class="carousel-nav-button carousel-nav-left">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                   <path d="m15 18-6-6 6-6"></path>
                 </svg>
               </button>
 
-              <!-- Scrollable Cards Container -->
               <div class="netflix-carousel-container" #carouselContainer (scroll)="onCarouselScroll()">
                 <div class="netflix-carousel-track">
-                  <div *ngFor="let item of recommendation.matchedItems; let i = index" 
-                       class="netflix-item bg-white rounded-xl shadow-sm border border-gray-100">
-                    <!-- Card Image Placeholder -->
+                  <div *ngFor="let item of recommendation.matchedItems" class="netflix-item bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="netflix-item-image bg-gradient-to-br from-orange-100 to-red-100 rounded-t-xl p-6 flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-orange-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-orange-500">
                         <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
                         <path d="M7 2v20"></path>
                         <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
                       </svg>
                     </div>
                     
-                    <!-- Card Content -->
                     <div class="p-4">
                       <div class="flex justify-between items-start mb-2">
                         <h4 class="font-bold text-gray-900 text-base flex-1">{{ item.name }}</h4>
@@ -330,30 +274,47 @@
                       </div>
                       
                       <div class="flex flex-wrap gap-1 mb-3">
-                        <span *ngFor="let tag of item.dietaryTags" 
-                              class="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">
-                          {{ tag }}
-                        </span>
-                        <span *ngIf="item.calories" 
-                              class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">
-                          {{ item.calories }} cal
-                        </span>
+                        <span *ngFor="let tag of item.dietaryTags" class="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full font-medium">{{ tag }}</span>
+                        <span *ngIf="item.calories" class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full font-medium">{{ item.calories }} cal</span>
                       </div>
                       
-                      <button class="w-full px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-medium rounded-lg transition-all shadow-md">
-                        Order Now
-                      </button>
+                      <!-- Add/Quantity Controls -->
+                      <div *ngIf="!isItemInBasket(item.id)" class="w-full">
+                        <button (click)="addToBasket(item)"
+                          class="w-full px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5v14"></path>
+                          </svg>
+                          Add to Basket
+                        </button>
+                      </div>
+
+                      <div *ngIf="isItemInBasket(item.id)" class="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-2 border-2 border-slate-200">
+                        <button (click)="decrementItem(item.id, $event)"
+                          class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-white rounded-lg transition-all shadow-md">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M5 12h14"></path>
+                          </svg>
+                        </button>
+                        
+                        <span class="text-xl font-black text-gray-900 min-w-[2rem] text-center">{{ getItemQuantity(item.id) }}</span>
+                        
+                        <button (click)="incrementItem(item, $event)"
+                          class="w-8 h-8 flex items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg transition-all shadow-md">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <path d="M5 12h14"></path>
+                            <path d="M12 5v14"></path>
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Right Arrow -->
-              <button 
-                *ngIf="hasMoreItemsToScroll()"
-                (click)="scrollCarouselRight()"
-                class="carousel-nav-button carousel-nav-right">
-                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <button *ngIf="hasMoreItemsToScroll()" (click)="scrollCarouselRight()" class="carousel-nav-button carousel-nav-right">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                   <path d="m9 18 6-6-6-6"></path>
                 </svg>
               </button>
@@ -361,41 +322,33 @@
           </div>
         </div>
 
-        <!-- Empty State with Animated Robot -->
+        <!-- Empty State -->
         <div *ngIf="!recommendation && !loading" class="bg-white rounded-2xl shadow-sm p-12 border border-gray-100 text-center">
-          <!-- Animated Robot -->
-          <div class="robot-container mb-6" (click)="playRobotSound()">
-            <div class="robot-body">
-              <!-- Head -->
-              <div class="robot-head">
-                <div class="robot-antenna"></div>
-                <div class="robot-eyes">
-                  <div class="robot-eye"></div>
-                  <div class="robot-eye"></div>
-                </div>
-                <div class="robot-mouth"></div>
-              </div>
-              <!-- Body -->
-              <div class="robot-torso">
-                <div class="robot-chest-light"></div>
-              </div>
-              <!-- Arms -->
-              <div class="robot-arms">
-                <div class="robot-arm robot-arm-left"></div>
-                <div class="robot-arm robot-arm-right"></div>
-              </div>
+         <div
+            class="mb-6 flex justify-center cursor-pointer select-none"
+            (click)="playRobotSound()"
+          >
+            <div
+              class="bg-gradient-to-br from-orange-50 to-red-50 rectangle-full
+                     p-6 shadow-md 
+                    hover:scale-105 transition-transform duration-300"
+            >
+              <img
+                src="/assets/menugenie_logo.png"
+                alt="Menu Genie Assistant"
+                class="h-60 w-60 object-contain"
+              />
             </div>
           </div>
-          
           <h3 class="font-bold text-gray-900 text-lg mb-2">Ready to Find Your Perfect Meal?</h3>
           <p class="text-gray-600 max-w-md mx-auto mb-3">
             Select your preferences and tell us what you're craving. Our AI will recommend the perfect dishes for you!
           </p>
-          <p class="text-xs text-gray-500">
-            💡 Click the robot for a surprise!
-          </p>
+          <p class="text-xs text-gray-500">💡 Click the robot for a surprise!</p>
         </div>
       </div>
     </div>
   </main>
+
+  <app-language-modal [isOpen]="showLanguageModal" (languageSelected)="onLanguageSelected($event)" (closed)="onLanguageModalClosed()"></app-language-modal>
 </div>

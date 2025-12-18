@@ -1,7 +1,8 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { 
   RecommendationRequest, 
   RecommendationResponse, 
@@ -9,16 +10,19 @@ import {
   PreferenceOption 
 } from '../models/menu-item.model';
 import { RecommendationService } from '../services/recommendation.service';
+import { BasketService } from '../services/basket.service';
+import { OrderService } from '../services/order.service';
+import { Language, Order } from '../models/order.model';
+import { LanguageModalComponent } from '../language-modal.component/language-modal.component';
 
 @Component({
   selector: 'app-menu-recommender',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, LanguageModalComponent],
   templateUrl: './menu-recommender.component.html',
   styleUrls: ['./menu-recommender.component.css']
 })
-export class MenuRecommenderComponent implements OnInit {
-  // Form state
+export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   query: string = '';
   selectedDietary: string[] = [];
   selectedPreferences: string[] = [];
@@ -27,26 +31,25 @@ export class MenuRecommenderComponent implements OnInit {
   weather: string = '';
   occasion: string = '';
   
-  // UI state
   loading: boolean = false;
   recommendation: RecommendationResponse | null = null;
   showAdvanced: boolean = false;
   error: string | null = null;
+  showLanguageModal: boolean = false;
+  selectedLanguage: Language | null = null;
+  basketCount: number = 0;
+  currentOrder: Order | null = null;
   
-  // Pagination state
   displayedItemsCount: number = 3;
   itemsPerPage: number = 3;
-  
-  // Carousel state
   currentCardIndex: number = 0;
   carouselScrollPosition: number = 0;
+  itemsInBasket = new Map<number, number>();
   
-  // Audio for robot
   private robotAudio: HTMLAudioElement | null = null;
   
-  @ViewChild('carouselContainer') carouselContainer!: ElementRef;
+  @ViewChild('carouselContainer', { static: false }) carouselContainer?: ElementRef;
 
-  // Options
   dietaryOptions: DietaryOption[] = [
     { id: 'vegetarian', label: 'Vegetarian', icon: '🥗' },
     { id: 'vegan', label: 'Vegan', icon: '🌱' },
@@ -69,40 +72,100 @@ export class MenuRecommenderComponent implements OnInit {
   weatherOptions: string[] = ['Sunny', 'Rainy', 'Cold', 'Hot', 'Mild'];
   occasions: string[] = ['Casual', 'Date Night', 'Family Meal', 'Business', 'Celebration', 'Quick Bite'];
 
-  constructor(private recommendationService: RecommendationService) {}
+  constructor(
+    private recommendationService: RecommendationService,
+    private basketService: BasketService,
+    private orderService: OrderService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    console.log('MenuRecommenderComponent initialized');
-    // Initialize robot sound
     this.initRobotSound();
+    this.basketService.basketCount$.subscribe(count => {
+      this.basketCount = count;
+    });
+    this.basketService.basketItems$.subscribe(items => {
+      this.itemsInBasket.clear();
+      items.forEach(item => {
+        this.itemsInBasket.set(item.menuItem.id, item.quantity);
+      });
+    });
+    this.orderService.currentUserOrder$.subscribe(order => {
+      this.currentOrder = order;
+    });
+    this.loadSavedLanguage();
+    this.orderService.loadCurrentUserOrder();
   }
+
+  private loadSavedLanguage(): void {
+    try {
+      const savedLangData = localStorage.getItem('userLanguage');
+      if (savedLangData) {
+        this.selectedLanguage = JSON.parse(savedLangData);
+      }
+    } catch (error) {
+      this.selectedLanguage = null;
+    }
+  }
+
   
-  initRobotSound(): void {
-    // Create a simple beep sound using Web Audio API
-    // This creates a robot-like beep without external files
-  }
+  initRobotSound(): void {}
   
   playRobotSound(): void {
-    // Create Web Audio API context for robot sound
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    // Create oscillator for beep sound
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Robot beep sound configuration
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.type = 'square';
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {}
+  }
+
+  getItemQuantity(itemId: number): number {
+    return this.itemsInBasket.get(itemId) || 0;
+  }
+
+  isItemInBasket(itemId: number): boolean {
+    return this.itemsInBasket.has(itemId) && this.itemsInBasket.get(itemId)! > 0;
+  }
+
+  incrementItem(item: any, event: Event): void {
+    event.stopPropagation();
+    this.basketService.addToBasket(item, 1);
+    this.showQuickFeedback('Added to basket!');
+  }
+
+  decrementItem(itemId: number, event: Event): void {
+    event.stopPropagation();
+    const currentQty = this.getItemQuantity(itemId);
+    if (currentQty > 0) {
+      this.basketService.updateQuantity(itemId, currentQty - 1);
+      if (currentQty === 1) {
+        this.showQuickFeedback('Removed from basket');
+      } else {
+        this.showQuickFeedback('Quantity updated');
+      }
+    }
+  }
+
+  private showQuickFeedback(message: string): void {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
+    toast.style.animation = 'slideInRight 0.3s ease-out';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'slideOutRight 0.3s ease-out';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 2000);
   }
 
   toggleSelection(item: string, list: string[]): void {
@@ -150,33 +213,18 @@ export class MenuRecommenderComponent implements OnInit {
   }
 
   hasActiveFilters(): boolean {
-    return this.selectedDietary.length > 0 ||
-           this.selectedPreferences.length > 0 ||
-           this.maxPrice !== '' ||
-           this.mealTime !== '' ||
-           this.weather !== '' ||
-           this.occasion !== '';
+    return this.selectedDietary.length > 0 || this.selectedPreferences.length > 0 || 
+           this.maxPrice !== '' || this.mealTime !== '' || this.weather !== '' || this.occasion !== '';
   }
 
   buildEnhancedQuery(): string {
     let enhancedQuery = this.query;
-    
-    if (this.mealTime) {
-      enhancedQuery += ` for ${this.mealTime.toLowerCase()}`;
-    }
-    
-    if (this.weather) {
-      enhancedQuery += ` on a ${this.weather.toLowerCase()} day`;
-    }
-    
-    if (this.occasion) {
-      enhancedQuery += ` for a ${this.occasion.toLowerCase()}`;
-    }
-    
+    if (this.mealTime) enhancedQuery += ` for ${this.mealTime.toLowerCase()}`;
+    if (this.weather) enhancedQuery += ` on a ${this.weather.toLowerCase()} day`;
+    if (this.occasion) enhancedQuery += ` for a ${this.occasion.toLowerCase()}`;
     if (this.selectedPreferences.length > 0) {
       enhancedQuery += `. I prefer ${this.selectedPreferences.join(', ')} food`;
     }
-    
     return enhancedQuery;
   }
 
@@ -185,34 +233,25 @@ export class MenuRecommenderComponent implements OnInit {
       this.error = 'Please enter what you\'re craving';
       return;
     }
+    if (this.selectedLanguage) {
+      this.getRecommendations();
+    } else {
+      this.showLanguageModal = true;
+    }
+  }
 
-    this.loading = true;
-    this.error = null;
+  onLanguageSelected(language: Language): void {
+    this.selectedLanguage = language;
+    this.showLanguageModal = false;
+    this.getRecommendations();
+  }
 
-    const enhancedQuery = this.buildEnhancedQuery();
+  onLanguageModalClosed(): void {
+    this.showLanguageModal = false;
+  }
 
-    const request: RecommendationRequest = {
-      query: enhancedQuery,
-      dietaryRestrictions: this.selectedDietary.length > 0 ? this.selectedDietary : undefined,
-      maxPrice: this.maxPrice ? parseFloat(this.maxPrice) : undefined,
-      topK: 5
-    };
-
-    this.recommendationService.getRecommendations(request).subscribe({
-      next: (response) => {
-        console.log('Received recommendations:', response);
-        this.recommendation = response;
-        this.displayedItemsCount = 3;
-        this.currentCardIndex = 0;
-        this.carouselScrollPosition = 0;
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Error getting recommendations:', error);
-        this.error = 'Sorry, there was an error getting recommendations. Please try again.';
-        this.loading = false;
-      }
-    });
+  openLanguageModal(): void {
+    this.showLanguageModal = true;
   }
 
   toggleAdvanced(): void {
@@ -223,88 +262,126 @@ export class MenuRecommenderComponent implements OnInit {
     return list.includes(item);
   }
 
-  // Pagination Methods
   
-  // Get currently displayed items
-  getDisplayedItems(): any[] {
-    if (!this.recommendation || !this.recommendation.matchedItems) {
-      return [];
-    }
-    return this.recommendation.matchedItems.slice(0, this.displayedItemsCount);
+
+  addToBasket(item: any): void {
+    this.basketService.addToBasket(item, 1);
+    this.showAddToBasketFeedback(item.name);
   }
 
-  // Check if there are more items to show
-  hasMoreItems(): boolean {
-    if (!this.recommendation || !this.recommendation.matchedItems) {
-      return false;
-    }
-    return this.displayedItemsCount < this.recommendation.matchedItems.length;
+  private showAddToBasketFeedback(itemName: string): void {
+    const toast = document.createElement('div');
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
+    toast.innerHTML = `
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span class="font-medium">${itemName} added to basket!</span>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'fadeOut 0.3s ease-out';
+      setTimeout(() => document.body.removeChild(toast), 300);
+    }, 3000);
   }
 
-  // Load more items
-  loadMore(): void {
-    if (this.hasMoreItems()) {
-      this.displayedItemsCount += this.itemsPerPage;
+  goToBasket(): void {
+    this.router.navigate(['/basket']);
+  }
+
+  goToOrderStatus(): void {
+    if (this.currentOrder) {
+      this.router.navigate(['/order-status', this.currentOrder.id]);
     }
   }
 
-  // Get remaining items count
-  getRemainingItemsCount(): number {
-    if (!this.recommendation || !this.recommendation.matchedItems) {
-      return 0;
-    }
-    const remaining = this.recommendation.matchedItems.length - this.displayedItemsCount;
-    return Math.max(0, remaining);
-  }
-  
-  // Carousel Navigation Methods
-  nextCard(): void {
-    if (this.recommendation && this.recommendation.matchedItems) {
-      if (this.currentCardIndex < this.recommendation.matchedItems.length - 1) {
-        this.currentCardIndex++;
-      }
-    }
-  }
-  
-  previousCard(): void {
-    if (this.currentCardIndex > 0) {
-      this.currentCardIndex--;
-    }
-  }
-  
-  goToCard(index: number): void {
-    this.currentCardIndex = index;
-  }
-  
-  // Netflix-style Carousel Methods
-  scrollCarouselLeft(): void {
-    if (this.carouselContainer) {
-      const container = this.carouselContainer.nativeElement;
-      const scrollAmount = 300; // Scroll by ~one card width
-      container.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-    }
-  }
-  
-  scrollCarouselRight(): void {
-    if (this.carouselContainer) {
-      const container = this.carouselContainer.nativeElement;
-      const scrollAmount = 300; // Scroll by ~one card width
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  }
-  
-  onCarouselScroll(): void {
-    if (this.carouselContainer) {
-      this.carouselScrollPosition = this.carouselContainer.nativeElement.scrollLeft;
-    }
-  }
-  
-  hasMoreItemsToScroll(): boolean {
-    if (!this.carouselContainer || !this.recommendation?.matchedItems) {
-      return false;
-    }
+ngAfterViewInit(): void {
+  this.cdr.detectChanges();
+  // Check carousel scroll state after a short delay to ensure DOM is ready
+  setTimeout(() => {
+    this.checkCarouselScroll();
+  }, 100);
+}
+
+private checkCarouselScroll(): void {
+  if (this.carouselContainer) {
     const container = this.carouselContainer.nativeElement;
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    return this.carouselScrollPosition < maxScroll - 10; // 10px threshold
+    this.carouselScrollPosition = container.scrollLeft;
+    // Force change detection to update arrow visibility
+    this.cdr.detectChanges();
   }
+}
+
+scrollCarouselLeft(): void {
+  if (this.carouselContainer) {
+    const container = this.carouselContainer.nativeElement;
+    container.scrollBy({ left: -300, behavior: 'smooth' });
+    // Update scroll position after animation
+    setTimeout(() => this.checkCarouselScroll(), 350);
+  }
+}
+
+scrollCarouselRight(): void {
+  if (this.carouselContainer) {
+    const container = this.carouselContainer.nativeElement;
+    container.scrollBy({ left: 300, behavior: 'smooth' });
+    // Update scroll position after animation
+    setTimeout(() => this.checkCarouselScroll(), 350);
+  }
+}
+
+onCarouselScroll(): void {
+  this.checkCarouselScroll();
+}
+
+hasMoreItemsToScroll(): boolean {
+  if (!this.carouselContainer || !this.recommendation?.matchedItems) {
+    return false;
+  }
+  
+  const container = this.carouselContainer.nativeElement;
+  const scrollWidth = container.scrollWidth;
+  const clientWidth = container.clientWidth;
+  const scrollLeft = container.scrollLeft;
+  
+  // Check if there's more content to scroll (with 10px tolerance)
+  const hasMore = scrollLeft < (scrollWidth - clientWidth - 10);
+  
+  return hasMore;
+}
+
+// Update getRecommendations to check scroll after data loads
+private getRecommendations(): void {
+  this.loading = true;
+  this.error = null;
+  const enhancedQuery = this.buildEnhancedQuery();
+  const request: RecommendationRequest = {
+    query: enhancedQuery,
+    dietaryRestrictions: this.selectedDietary.length > 0 ? this.selectedDietary : undefined,
+    maxPrice: this.maxPrice ? parseFloat(this.maxPrice) : undefined,
+    topK: 5
+  };
+  this.recommendationService.getRecommendations(request).subscribe({
+    next: (response) => {
+      this.recommendation = response;
+      this.displayedItemsCount = 3;
+      this.currentCardIndex = 0;
+      this.carouselScrollPosition = 0;
+      this.loading = false;
+      this.cdr.detectChanges();
+      
+      // Check carousel scroll state after items are rendered
+      setTimeout(() => {
+        this.checkCarouselScroll();
+      }, 100);
+    },
+    error: (error) => {
+      this.error = 'Sorry, there was an error getting recommendations. Please try again.';
+      this.loading = false;
+    }
+  });
+}
+
 }

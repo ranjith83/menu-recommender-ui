@@ -1,126 +1,132 @@
-<div class="landing-page">
-  <!-- Hero Section -->
-  <div class="hero-section">
-    <div class="hero-overlay"></div>
-    <div class="hero-background"></div>
-    
-    <!-- Navigation -->
-    <nav class="navbar">
-      <div class="nav-content">
-        <div class="nav-logo">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
-            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
-            <path d="M7 2v20"></path>
-            <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+ <!-- Landing Page (shown only on root path) -->
+    <div class="landing-page" [style.display]="showLandingPage ? 'block' : 'none'">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-background"></div>
+        
+        <!-- Navigation -->
+        <nav class="navbar">
+          <div class="nav-content">
+            <div class="nav-logo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="logo-icon">
+                <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path>
+                <path d="M7 2v20"></path>
+                <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>
+              </svg>
+              <h1 class="nav-title">Hotel Web App</h1>
+            </div>
+            <div class="nav-links">
+              <a href="#menu" (click)="openMenuModal(); $event.preventDefault()">Menu</a>
+              <a href="#about">About</a>
+              <a href="#reservations">Reservations</a>
+              <a href="#contact">Contact</a>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Hero Content -->
+        <div class="hero-content">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hero-award">
+            <circle cx="12" cy="8" r="6"></circle>
+            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
           </svg>
-          <h1 class="nav-title">Hotel Web App</h1>
-        </div>
-        <div class="nav-links">
-          <a href="#menu">Menu</a>
-          <a href="#about">About</a>
-          <a href="#reservations">Reservations</a>
-          <a href="#contact">Contact</a>
-        </div>
-      </div>
-    </nav>
-
-    <!-- Hero Content -->
-    <div class="hero-content">
-      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hero-award">
-        <circle cx="12" cy="8" r="6"></circle>
-        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-      </svg>
-      <h2 class="hero-title">Hotel Web</h2>
-      <p class="hero-subtitle">Contemporary Irish</p>
-      <p class="hero-description">
-        Celebrating the wild, foraged, and cultivated bounty of Ireland
-      </p>
-      <div class="hero-buttons">
-        <button class="btn-primary">Book a Table</button>
-        <button class="btn-secondary">View Menu</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Features Section -->
-  <section class="features-section">
-    <div class="features-container">
-      <div class="feature-card">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
-          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-          <circle cx="12" cy="10" r="3"></circle>
-        </svg>
-        <h3 class="feature-title">West End, Donegal</h3>
-        <p class="feature-description">Located in the heart of Donegal's vibrant cultural quarter</p>
-      </div>
-      <div class="feature-card">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
-          <circle cx="12" cy="12" r="10"></circle>
-          <polyline points="12 6 12 12 16 14"></polyline>
-        </svg>
-        <h3 class="feature-title">Seasonal Menu</h3>
-        <p class="feature-description">Our menu evolves with the changing seasons and local harvest</p>
-      </div>
-      <div class="feature-card">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
-          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
-          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
-        </svg>
-        <h3 class="feature-title">Wild & Foraged</h3>
-        <p class="feature-description">Ingredients from our farms, wildlands, and surrounding shores</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section id="about" class="about-section">
-    <div class="about-container">
-      <h2 class="about-title">Our Philosophy</h2>
-      <p class="about-text">
-        Hotel Web App is a starred restaurant located in Donegal's West End. Our food comes from the specific place that is the west of Ireland. We hope to reveal the distinct and various foodstuffs that make up our particular landscape, through our farms, the wildlands and the shores that surround us.
-      </p>
-      <p class="about-text">
-        The natural course of the seasons dictates our ever-changing and evolving menu. Our tasting menu is an immersive dining experience of Irish food through the ages with a contemporary filter.
-      </p>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="cta-section">
-    <h2 class="cta-title">Experience Irish Culinary Heritage</h2>
-    <p class="cta-subtitle">
-      From traditional preservation methods to contemporary innovation
-    </p>
-    <button class="cta-button">Reserve Your Table</button>
-  </section>
-
-  <!-- Floating Robot Button (UPDATED) -->
-  <div class="floating-robot-button" (click)="playRobotSound(); openMenuModal()">
-    <div class="mini-robot">
-      <div class="mini-robot-head">
-        <div class="mini-robot-antenna"></div>
-        <div class="mini-robot-eyes">
-          <div class="mini-robot-eye"></div>
-          <div class="mini-robot-eye"></div>
+          <h2 class="hero-title">Hotel Web</h2>
+          <p class="hero-subtitle">Contemporary Irish</p>
+          <p class="hero-description">
+            Celebrating the wild, foraged, and cultivated bounty of Ireland
+          </p>
+          <div class="hero-buttons">
+            <button class="btn-primary">Book a Table</button>
+            <button class="btn-secondary" (click)="openMenuModal()">View Menu</button>
+          </div>
         </div>
       </div>
-      <div class="mini-robot-body">
-        <div class="mini-robot-light"></div>
+
+      <!-- Features Section -->
+      <section class="features-section">
+        <div class="features-container">
+          <div class="feature-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <h3 class="feature-title">West End, Donegal</h3>
+            <p class="feature-description">Located in the heart of Donegal's vibrant cultural quarter</p>
+          </div>
+          <div class="feature-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <h3 class="feature-title">Seasonal Menu</h3>
+            <p class="feature-description">Our menu evolves with the changing seasons and local harvest</p>
+          </div>
+          <div class="feature-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feature-icon">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path>
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+            </svg>
+            <h3 class="feature-title">Wild & Foraged</h3>
+            <p class="feature-description">Ingredients from our farms, wildlands, and surrounding shores</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- About Section -->
+      <section id="about" class="about-section">
+        <div class="about-container">
+          <h2 class="about-title">Our Philosophy</h2>
+          <p class="about-text">
+            Hotel Web App is a starred restaurant located in Donegal's West End. Our food comes from the specific place that is the west of Ireland. We hope to reveal the distinct and various foodstuffs that make up our particular landscape, through our farms, the wildlands and the shores that surround us.
+          </p>
+          <p class="about-text">
+            The natural course of the seasons dictates our ever-changing and evolving menu. Our tasting menu is an immersive dining experience of Irish food through the ages with a contemporary filter.
+          </p>
+        </div>
+      </section>
+
+      <!-- CTA Section -->
+      <section class="cta-section">
+        <h2 class="cta-title">Experience Irish Culinary Heritage</h2>
+        <p class="cta-subtitle">
+          From traditional preservation methods to contemporary innovation
+        </p>
+        <button class="cta-button">Reserve Your Table</button>
+      </section>
+
+      <!-- Floating Robot Button -->
+      <div class="floating-robot-button" (click)="playRobotSound(); openMenuModal()">
+        <div class="mini-robot">
+          <div class="mini-robot-head">
+            <div class="mini-robot-antenna"></div>
+            <div class="mini-robot-eyes">
+              <div class="mini-robot-eye"></div>
+              <div class="mini-robot-eye"></div>
+            </div>
+          </div>
+          <div class="mini-robot-body">
+            <div class="mini-robot-light"></div>
+          </div>
+        </div>
+        <span class="floating-tooltip">Get AI Menu Recommendations</span>
+      </div>
+
+      <!-- Menu Modal -->
+      <div class="modal-overlay" *ngIf="showMenuModal" (click)="closeMenuModal()">
+        <div class="modal-container" (click)="$event.stopPropagation()">
+          <app-menu-recommender></app-menu-recommender>
+          <button class="modal-close" (click)="closeMenuModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18"></path>
+              <path d="m6 6 12 12"></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
-    <span class="floating-tooltip">Get AI Menu Recommendations</span>
-  </div>
 
-  <!-- Menu Modal -->
-  <div class="modal-overlay" *ngIf="showMenuModal" (click)="closeMenuModal()">
-    <div class="modal-container" (click)="$event.stopPropagation()">
-      <app-menu-recommender></app-menu-recommender>
-      <button class="modal-close" (click)="closeMenuModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 6 6 18"></path>
-          <path d="m6 6 12 12"></path>
-        </svg>
-      </button>
+    <!-- Router Outlet for other pages (basket, kitchen, etc.) -->
+    <div [style.display]="!showLandingPage ? 'block' : 'none'">
+      <router-outlet></router-outlet>
     </div>
-  </div>
-</div>
