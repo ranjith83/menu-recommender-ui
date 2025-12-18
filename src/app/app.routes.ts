@@ -5,48 +5,39 @@ import { KitchenLoginComponent } from './kitchen-login.component/kitchen-login.c
 import { OrderStatusComponent } from './order-status.component/order-status.component';
 import { BasketComponent } from './basket.component/basket.component';
 import { authGuard } from './guards/auth-guard';
-import { RenderMode } from '@angular/ssr';
 
 export const routes: Routes = [
-  // Menu recommender as separate route
+  // Menu recommender - Client-side only due to browser APIs
   {
     path: 'menu',
     component: MenuRecommenderComponent,
     title: 'Menu - AI-Powered Recommendations'
   },
-  // Basket page
+  // Basket page - Client-side only
   {
     path: 'basket',
     component: BasketComponent,
     title: 'Your Basket - Menu Genius'
   },
-  // Order status with ID
-  /**{
-    path: 'order-status/:id',
-    component: OrderStatusComponent,
-    title: 'Order Status - Menu Genius',
-    renderMode: RenderMode.Client
-  },**/
-  // Order status without ID
+  // Order status - Client-side only
   {
     path: 'order-status',
     component: OrderStatusComponent,
     title: 'Order Status - Menu Genius'
   },
-  // Kitchen login
+  // Kitchen login - Client-side only
   {
     path: 'kitchen-login',
     component: KitchenLoginComponent,
     title: 'Kitchen Login - Menu Genius'
   },
-  // Kitchen dashboard (protected)
+  // Kitchen dashboard - Client-side only
   {
     path: 'kitchen',
     component: KitchenDashboardComponent,
-    //canActivate: [authGuard],
     title: 'Kitchen Dashboard - Menu Genius'
   },
-  // Root path - empty, will show landing page via AppComponent logic
+  // Root path
   {
     path: '',
     pathMatch: 'full',

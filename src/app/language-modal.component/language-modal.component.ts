@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Output, Input, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { SUPPORTED_LANGUAGES, Language } from '../models/order.model';
 
 @Component({
@@ -16,6 +16,11 @@ export class LanguageModalComponent implements OnInit, OnDestroy {
 
   languages = SUPPORTED_LANGUAGES;
   selectedLanguage: Language | null = null;
+  isBrowser: any;
+
+   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     // Load saved language from localStorage if available

@@ -1,5 +1,5 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -47,6 +47,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   itemsInBasket = new Map<number, number>();
   
   private robotAudio: HTMLAudioElement | null = null;
+  private isBrowser: boolean;
   
   @ViewChild('carouselContainer', { static: false }) carouselContainer?: ElementRef;
 
@@ -73,48 +74,85 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   occasions: string[] = ['Casual', 'Date Night', 'Family Meal', 'Business', 'Celebration', 'Quick Bite'];
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
     private recommendationService: RecommendationService,
     private basketService: BasketService,
     private orderService: OrderService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
-    this.initRobotSound();
+    // Only initialize browser-specific features if we're in the browser
+    if (this.isBrowser) {
+      this.initRobotSound();
+      this.loadSavedLanguage();
+    }
+    
     this.basketService.basketCount$.subscribe(count => {
       this.basketCount = count;
     });
+    
     this.basketService.basketItems$.subscribe(items => {
       this.itemsInBasket.clear();
       items.forEach(item => {
         this.itemsInBasket.set(item.menuItem.id, item.quantity);
       });
     });
+    
     this.orderService.currentUserOrder$.subscribe(order => {
       this.currentOrder = order;
     });
-    this.loadSavedLanguage();
+    
     this.orderService.loadCurrentUserOrder();
   }
 
   private loadSavedLanguage(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    
     try {
       const savedLangData = localStorage.getItem('userLanguage');
       if (savedLangData) {
         this.selectedLanguage = JSON.parse(savedLangData);
       }
     } catch (error) {
+      console.error('Error loading saved language:', error);
       this.selectedLanguage = null;
     }
   }
 
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+    
+    // Only check carousel in browser
+    if (this.isBrowser) {
+      setTimeout(() => {
+        this.checkCarouselScroll();
+      }, 100);
+    }
+  }
   
-  initRobotSound(): void {}
+  initRobotSound(): void {
+    // Only initialize audio in browser
+    if (this.isBrowser) {
+      // Audio initialization if needed
+    }
+  }
   
   playRobotSound(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const audioContext = new AudioContext();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       oscillator.connect(gainNode);
@@ -126,7 +164,9 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
-    } catch (error) {}
+    } catch (error) {
+      console.error('Error playing robot sound:', error);
+    }
   }
 
   getItemQuantity(itemId: number): number {
@@ -157,6 +197,10 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   private showQuickFeedback(message: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    
     const toast = document.createElement('div');
     toast.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
     toast.style.animation = 'slideInRight 0.3s ease-out';
@@ -164,7 +208,11 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     document.body.appendChild(toast);
     setTimeout(() => {
       toast.style.animation = 'slideOutRight 0.3s ease-out';
-      setTimeout(() => document.body.removeChild(toast), 300);
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
     }, 2000);
   }
 
@@ -262,14 +310,16 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     return list.includes(item);
   }
 
-  
-
   addToBasket(item: any): void {
     this.basketService.addToBasket(item, 1);
     this.showAddToBasketFeedback(item.name);
   }
 
   private showAddToBasketFeedback(itemName: string): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    
     const toast = document.createElement('div');
     toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
     toast.innerHTML = `
@@ -283,7 +333,11 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     document.body.appendChild(toast);
     setTimeout(() => {
       toast.style.animation = 'fadeOut 0.3s ease-out';
-      setTimeout(() => document.body.removeChild(toast), 300);
+      setTimeout(() => {
+        if (document.body.contains(toast)) {
+          document.body.removeChild(toast);
+        }
+      }, 300);
     }, 3000);
   }
 
@@ -297,91 +351,84 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     }
   }
 
-ngAfterViewInit(): void {
-  this.cdr.detectChanges();
-  // Check carousel scroll state after a short delay to ensure DOM is ready
-  setTimeout(() => {
-    this.checkCarouselScroll();
-  }, 100);
-}
-
-private checkCarouselScroll(): void {
-  if (this.carouselContainer) {
+  private checkCarouselScroll(): void {
+    if (!this.isBrowser || !this.carouselContainer) {
+      return;
+    }
+    
     const container = this.carouselContainer.nativeElement;
     this.carouselScrollPosition = container.scrollLeft;
-    // Force change detection to update arrow visibility
     this.cdr.detectChanges();
   }
-}
 
-scrollCarouselLeft(): void {
-  if (this.carouselContainer) {
+  scrollCarouselLeft(): void {
+    if (!this.isBrowser || !this.carouselContainer) {
+      return;
+    }
+    
     const container = this.carouselContainer.nativeElement;
     container.scrollBy({ left: -300, behavior: 'smooth' });
-    // Update scroll position after animation
     setTimeout(() => this.checkCarouselScroll(), 350);
   }
-}
 
-scrollCarouselRight(): void {
-  if (this.carouselContainer) {
+  scrollCarouselRight(): void {
+    if (!this.isBrowser || !this.carouselContainer) {
+      return;
+    }
+    
     const container = this.carouselContainer.nativeElement;
     container.scrollBy({ left: 300, behavior: 'smooth' });
-    // Update scroll position after animation
     setTimeout(() => this.checkCarouselScroll(), 350);
   }
-}
 
-onCarouselScroll(): void {
-  this.checkCarouselScroll();
-}
-
-hasMoreItemsToScroll(): boolean {
-  if (!this.carouselContainer || !this.recommendation?.matchedItems) {
-    return false;
+  onCarouselScroll(): void {
+    this.checkCarouselScroll();
   }
-  
-  const container = this.carouselContainer.nativeElement;
-  const scrollWidth = container.scrollWidth;
-  const clientWidth = container.clientWidth;
-  const scrollLeft = container.scrollLeft;
-  
-  // Check if there's more content to scroll (with 10px tolerance)
-  const hasMore = scrollLeft < (scrollWidth - clientWidth - 10);
-  
-  return hasMore;
-}
 
-// Update getRecommendations to check scroll after data loads
-private getRecommendations(): void {
-  this.loading = true;
-  this.error = null;
-  const enhancedQuery = this.buildEnhancedQuery();
-  const request: RecommendationRequest = {
-    query: enhancedQuery,
-    dietaryRestrictions: this.selectedDietary.length > 0 ? this.selectedDietary : undefined,
-    maxPrice: this.maxPrice ? parseFloat(this.maxPrice) : undefined,
-    topK: 5
-  };
-  this.recommendationService.getRecommendations(request).subscribe({
-    next: (response) => {
-      this.recommendation = response;
-      this.displayedItemsCount = 3;
-      this.currentCardIndex = 0;
-      this.carouselScrollPosition = 0;
-      this.loading = false;
-      this.cdr.detectChanges();
-      
-      // Check carousel scroll state after items are rendered
-      setTimeout(() => {
-        this.checkCarouselScroll();
-      }, 100);
-    },
-    error: (error) => {
-      this.error = 'Sorry, there was an error getting recommendations. Please try again.';
-      this.loading = false;
+  hasMoreItemsToScroll(): boolean {
+    if (!this.isBrowser || !this.carouselContainer || !this.recommendation?.matchedItems) {
+      return false;
     }
-  });
-}
+    
+    const container = this.carouselContainer.nativeElement;
+    const scrollWidth = container.scrollWidth;
+    const clientWidth = container.clientWidth;
+    const scrollLeft = container.scrollLeft;
+    
+    const hasMore = scrollLeft < (scrollWidth - clientWidth - 10);
+    
+    return hasMore;
+  }
 
+  private getRecommendations(): void {
+    this.loading = true;
+    this.error = null;
+    const enhancedQuery = this.buildEnhancedQuery();
+    const request: RecommendationRequest = {
+      query: enhancedQuery,
+      dietaryRestrictions: this.selectedDietary.length > 0 ? this.selectedDietary : undefined,
+      maxPrice: this.maxPrice ? parseFloat(this.maxPrice) : undefined,
+      topK: 5
+    };
+    this.recommendationService.getRecommendations(request).subscribe({
+      next: (response) => {
+        this.recommendation = response;
+        this.displayedItemsCount = 3;
+        this.currentCardIndex = 0;
+        this.carouselScrollPosition = 0;
+        this.loading = false;
+        this.cdr.detectChanges();
+        
+        if (this.isBrowser) {
+          setTimeout(() => {
+            this.checkCarouselScroll();
+          }, 100);
+        }
+      },
+      error: (error) => {
+        this.error = 'Sorry, there was an error getting recommendations. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
 }

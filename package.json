@@ -2,12 +2,14 @@
   "name": "menu-recommender-ui",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
+  "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "build": "ng build --configuration production",
+    "build:client": "ng build --configuration production",
+    "build:ssr": "ng build && ng server",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "serve:ssr:menu-recommender-ui": "node dist/menu-recommender-ui/server/server.mjs",
+    "serve:ssr": "node dist/menu-recommender-ui/server/server.mjs",
     "tailwind:init": "tailwindcss init"
   },
   "prettier": {
