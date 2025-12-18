@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MenuService } from '../services/menu.service';
 import { MenuItem } from '../models/menu-item.model';
@@ -39,7 +39,14 @@ export class MenuManagementComponent implements OnInit {
   spiceLevels = ['None', 'Mild', 'Medium', 'Hot', 'Very Hot'];
   availableDietaryTags = ['vegetarian', 'vegan', 'halal', 'gluten-free', 'dairy-free', 'nut-free', 'keto', 'paleo'];
 
-  constructor(private menuService: MenuService) {}
+  private isBrowser: boolean;
+
+  constructor(
+    private menuService: MenuService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
     this.loadMenuItems();
@@ -207,6 +214,8 @@ export class MenuManagementComponent implements OnInit {
   }
 
   private showSuccessMessage(message: string): void {
+    if (!this.isBrowser) return;
+    
     const toast = document.createElement('div');
     toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
     toast.innerHTML = `

@@ -16,91 +16,94 @@ export class LanguageModalComponent implements OnInit, OnDestroy {
 
   languages = SUPPORTED_LANGUAGES;
   selectedLanguage: Language | null = null;
-  isBrowser: any;
+  private isBrowser: boolean;
 
-   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.isBrowser = isPlatformBrowser(this.platformId);
   }
 
   ngOnInit(): void {
-    // Load saved language from localStorage if available
     this.loadSavedLanguage();
     
-    // Prevent body scroll when modal is open
-    if (this.isOpen) {
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
+    if (this.isBrowser && this.isOpen) {
+      this.setBodyScroll(false);
     }
   }
 
   ngOnDestroy(): void {
-    // Restore body scroll on component destroy
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = 'auto';
+    if (this.isBrowser) {
+      this.setBodyScroll(true);
+    }
   }
 
   ngOnChanges(): void {
-    // Handle body scroll when isOpen changes
-    if (this.isOpen) {
-      document.body.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-    } else {
+    if (this.isBrowser) {
+      this.setBodyScroll(!this.isOpen);
+    }
+  }
+
+  private setBodyScroll(enable: boolean): void {
+    if (!this.isBrowser) return;
+    
+    if (enable) {
       document.body.classList.remove('modal-open');
       document.body.style.overflow = 'auto';
+    } else {
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
     }
   }
 
   private loadSavedLanguage(): void {
+    if (!this.isBrowser) {
+      this.selectedLanguage = SUPPORTED_LANGUAGES[0];
+      return;
+    }
+
     try {
       const savedLangData = localStorage.getItem('userLanguage');
       if (savedLangData) {
         this.selectedLanguage = JSON.parse(savedLangData);
-        console.log('Loaded saved language in modal:', this.selectedLanguage);
       } else {
-        // Default to English if no saved language
         this.selectedLanguage = SUPPORTED_LANGUAGES[0];
       }
     } catch (error) {
       console.error('Error loading saved language:', error);
-      // Default to English on error
       this.selectedLanguage = SUPPORTED_LANGUAGES[0];
     }
   }
 
   selectLanguage(language: Language): void {
     this.selectedLanguage = language;
-    console.log('Language selected:', language);
   }
 
   confirm(): void {
     if (this.selectedLanguage) {
-      // Save to localStorage
-      try {
-        localStorage.setItem('userLanguage', JSON.stringify(this.selectedLanguage));
-        console.log('Language saved to localStorage:', this.selectedLanguage);
-      } catch (error) {
-        console.error('Error saving language to localStorage:', error);
+      if (this.isBrowser) {
+        try {
+          localStorage.setItem('userLanguage', JSON.stringify(this.selectedLanguage));
+        } catch (error) {
+          console.error('Error saving language to localStorage:', error);
+        }
       }
       
-      // Emit the selected language
       this.languageSelected.emit(this.selectedLanguage);
       
-      // Restore body scroll
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = 'auto';
+      if (this.isBrowser) {
+        this.setBodyScroll(true);
+      }
     }
   }
 
   close(): void {
-    // Restore body scroll
-    document.body.classList.remove('modal-open');
-    document.body.style.overflow = 'auto';
+    if (this.isBrowser) {
+      this.setBodyScroll(true);
+    }
     
     this.closed.emit();
   }
 
   onBackdropClick(event: MouseEvent): void {
-    // Only close if clicking directly on backdrop, not on modal content
     if (event.target === event.currentTarget) {
       this.close();
     }

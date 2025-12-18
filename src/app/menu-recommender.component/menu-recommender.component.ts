@@ -46,7 +46,6 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   carouselScrollPosition: number = 0;
   itemsInBasket = new Map<number, number>();
   
-  private robotAudio: HTMLAudioElement | null = null;
   private isBrowser: boolean;
   
   @ViewChild('carouselContainer', { static: false }) carouselContainer?: ElementRef;
@@ -85,9 +84,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // Only initialize browser-specific features if we're in the browser
     if (this.isBrowser) {
-      this.initRobotSound();
       this.loadSavedLanguage();
     }
     
@@ -110,9 +107,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   private loadSavedLanguage(): void {
-    if (!this.isBrowser) {
-      return;
-    }
+    if (!this.isBrowser) return;
     
     try {
       const savedLangData = localStorage.getItem('userLanguage');
@@ -128,7 +123,6 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.cdr.detectChanges();
     
-    // Only check carousel in browser
     if (this.isBrowser) {
       setTimeout(() => {
         this.checkCarouselScroll();
@@ -136,17 +130,8 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     }
   }
   
-  initRobotSound(): void {
-    // Only initialize audio in browser
-    if (this.isBrowser) {
-      // Audio initialization if needed
-    }
-  }
-  
   playRobotSound(): void {
-    if (!this.isBrowser) {
-      return;
-    }
+    if (!this.isBrowser) return;
     
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -155,13 +140,17 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
       const audioContext = new AudioContext();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
+      
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
+      
       oscillator.type = 'square';
       oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
       oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+      
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.1);
     } catch (error) {
@@ -197,15 +186,14 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   private showQuickFeedback(message: string): void {
-    if (!this.isBrowser) {
-      return;
-    }
+    if (!this.isBrowser) return;
     
     const toast = document.createElement('div');
     toast.className = 'fixed top-20 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm font-medium';
     toast.style.animation = 'slideInRight 0.3s ease-out';
     toast.textContent = message;
     document.body.appendChild(toast);
+    
     setTimeout(() => {
       toast.style.animation = 'slideOutRight 0.3s ease-out';
       setTimeout(() => {
@@ -316,9 +304,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   private showAddToBasketFeedback(itemName: string): void {
-    if (!this.isBrowser) {
-      return;
-    }
+    if (!this.isBrowser) return;
     
     const toast = document.createElement('div');
     toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in';
@@ -331,6 +317,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
       </div>
     `;
     document.body.appendChild(toast);
+    
     setTimeout(() => {
       toast.style.animation = 'fadeOut 0.3s ease-out';
       setTimeout(() => {
@@ -352,9 +339,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   private checkCarouselScroll(): void {
-    if (!this.isBrowser || !this.carouselContainer) {
-      return;
-    }
+    if (!this.isBrowser || !this.carouselContainer) return;
     
     const container = this.carouselContainer.nativeElement;
     this.carouselScrollPosition = container.scrollLeft;
@@ -362,9 +347,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   scrollCarouselLeft(): void {
-    if (!this.isBrowser || !this.carouselContainer) {
-      return;
-    }
+    if (!this.isBrowser || !this.carouselContainer) return;
     
     const container = this.carouselContainer.nativeElement;
     container.scrollBy({ left: -300, behavior: 'smooth' });
@@ -372,9 +355,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
   }
 
   scrollCarouselRight(): void {
-    if (!this.isBrowser || !this.carouselContainer) {
-      return;
-    }
+    if (!this.isBrowser || !this.carouselContainer) return;
     
     const container = this.carouselContainer.nativeElement;
     container.scrollBy({ left: 300, behavior: 'smooth' });
@@ -395,14 +376,13 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     const clientWidth = container.clientWidth;
     const scrollLeft = container.scrollLeft;
     
-    const hasMore = scrollLeft < (scrollWidth - clientWidth - 10);
-    
-    return hasMore;
+    return scrollLeft < (scrollWidth - clientWidth - 10);
   }
 
   private getRecommendations(): void {
     this.loading = true;
     this.error = null;
+    
     const enhancedQuery = this.buildEnhancedQuery();
     const request: RecommendationRequest = {
       query: enhancedQuery,
@@ -410,6 +390,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
       maxPrice: this.maxPrice ? parseFloat(this.maxPrice) : undefined,
       topK: 5
     };
+    
     this.recommendationService.getRecommendations(request).subscribe({
       next: (response) => {
         this.recommendation = response;
