@@ -5,6 +5,7 @@ import { KitchenLoginComponent } from './kitchen-login.component/kitchen-login.c
 import { OrderStatusComponent } from './order-status.component/order-status.component';
 import { BasketComponent } from './basket.component/basket.component';
 import { authGuard } from './guards/auth-guard';
+import { RenderMode } from '@angular/ssr';
 
 export const routes: Routes = [
   // Menu recommender as separate route
@@ -20,11 +21,12 @@ export const routes: Routes = [
     title: 'Your Basket - Menu Genius'
   },
   // Order status with ID
-  {
+  /**{
     path: 'order-status/:id',
     component: OrderStatusComponent,
-    title: 'Order Status - Menu Genius'
-  },
+    title: 'Order Status - Menu Genius',
+    renderMode: RenderMode.Client
+  },**/
   // Order status without ID
   {
     path: 'order-status',
