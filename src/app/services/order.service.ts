@@ -6,7 +6,7 @@ import { BehaviorSubject, Observable, interval, throwError, Subscription } from 
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
 import { Order, OrderStatus, BasketItem, MenuItem } from '../models/order.model';
-import { environment } from '../../enviroments/environment';
+import { environment } from '../../environments/environment';
 
 // ... Keep all your interfaces (ApiResponse, OrderResponseDto, etc.)
 interface ApiResponse<T> {
