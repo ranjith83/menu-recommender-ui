@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
+import { Observable, Subscription, interval } from 'rxjs';
 import { OrderService } from '../services/order.service';
 import { Order, OrderStatus } from '../models/order.model';
 
@@ -16,6 +16,7 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   activeOrders: Order[] = [];
   private orderSubscription?: Subscription;
   private refreshSubscription?: Subscription;
+  activeOrders$!: Observable<Order[]>;
 
   constructor(
     private orderService: OrderService,
@@ -44,7 +45,8 @@ export class OrderManagementComponent implements OnInit, OnDestroy {
   }
 
   loadOrders(): void {
-    this.activeOrders = this.orderService.getActiveOrders();
+    this.activeOrders$ = this.orderService.getActiveOrders();
+   // this.orderService.getActiveOrders();
   }
 
   updateStatus(orderId: string, status: string): void {

@@ -68,6 +68,17 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     { id: 'comfort-food', label: 'Comfort Food', icon: '🍲' }
   ];
 
+  categoryOptions = [
+  { id: 'starters', label: 'Starters', icon: '🥗' },
+  { id: 'main', label: 'Main Course', icon: '🍽️' },
+  { id: 'sides', label: 'Sides', icon: '🍟' },
+  { id: 'beverages', label: 'Beverages', icon: '🥤' },
+  { id: 'desserts', label: 'Desserts', icon: '🍰' },
+  { id: 'soup', label: 'Soup', icon: '🍜' }
+];
+
+selectedCategories: string[] = [];
+
   mealTimes: string[] = ['Breakfast', 'Brunch', 'Lunch', 'Dinner', 'Late Night'];
   weatherOptions: string[] = ['Sunny', 'Rainy', 'Cold', 'Hot', 'Mild'];
   occasions: string[] = ['Casual', 'Date Night', 'Family Meal', 'Business', 'Celebration', 'Quick Bite'];
@@ -233,36 +244,63 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     this.occasion = this.occasion === occ ? '' : occ;
   }
 
-  clearFilters(): void {
-    this.selectedDietary = [];
-    this.selectedPreferences = [];
-    this.maxPrice = '';
-    this.mealTime = '';
-    this.weather = '';
-    this.occasion = '';
-    this.query = '';
-    this.recommendation = null;
-    this.error = null;
-    this.displayedItemsCount = 3;
-    this.currentCardIndex = 0;
-    this.carouselScrollPosition = 0;
-  }
+clearFilters(): void {
+  this.selectedDietary = [];
+  this.selectedPreferences = [];
+  this.selectedCategories = [];  // ADD THIS LINE
+  this.maxPrice = '';
+  this.mealTime = '';
+  this.weather = '';
+  this.occasion = '';
+  this.query = '';
+  this.recommendation = null;
+  this.error = null;
+  this.displayedItemsCount = 3;
+  this.currentCardIndex = 0;
+  this.carouselScrollPosition = 0;
+}
 
-  hasActiveFilters(): boolean {
-    return this.selectedDietary.length > 0 || this.selectedPreferences.length > 0 || 
-           this.maxPrice !== '' || this.mealTime !== '' || this.weather !== '' || this.occasion !== '';
-  }
+ hasActiveFilters(): boolean {
+  return this.selectedDietary.length > 0 || 
+         this.selectedPreferences.length > 0 || 
+         this.selectedCategories.length > 0 ||  // ADD THIS LINE
+         this.maxPrice !== '' || 
+         this.mealTime !== '' || 
+         this.weather !== '' || 
+         this.occasion !== '';
+}
 
   buildEnhancedQuery(): string {
-    let enhancedQuery = this.query;
-    if (this.mealTime) enhancedQuery += ` for ${this.mealTime.toLowerCase()}`;
-    if (this.weather) enhancedQuery += ` on a ${this.weather.toLowerCase()} day`;
-    if (this.occasion) enhancedQuery += ` for a ${this.occasion.toLowerCase()}`;
-    if (this.selectedPreferences.length > 0) {
-      enhancedQuery += `. I prefer ${this.selectedPreferences.join(', ')} food`;
-    }
-    return enhancedQuery;
+  let enhancedQuery = this.query;
+  if (this.selectedCategories.length > 0) {  // ADD THIS BLOCK
+    enhancedQuery += ` focusing on ${this.selectedCategories.join(', ')}`;
   }
+  if (this.mealTime) enhancedQuery += ` for ${this.mealTime.toLowerCase()}`;
+  if (this.weather) enhancedQuery += ` on a ${this.weather.toLowerCase()} day`;
+  if (this.occasion) enhancedQuery += ` for a ${this.occasion.toLowerCase()}`;
+  if (this.selectedPreferences.length > 0) {
+    enhancedQuery += `. I prefer ${this.selectedPreferences.join(', ')} food`;
+  }
+  return enhancedQuery;
+}
+
+onImageError(event: any): void {
+  event.target.style.display = 'none';
+  const parent = event.target.parentElement;
+  if (parent) {
+    parent.classList.add('bg-gradient-to-br', 'from-orange-100', 'to-red-100', 'flex', 'items-center', 'justify-center');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '48');
+    svg.setAttribute('height', '48');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.classList.add('text-orange-500');
+    svg.innerHTML = '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"></path><path d="M7 2v20"></path><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"></path>';
+    parent.appendChild(svg);
+  }
+}
 
   onSubmit(): void {
     if (!this.query.trim()) {
@@ -379,6 +417,10 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
     return scrollLeft < (scrollWidth - clientWidth - 10);
   }
 
+  toggleCategory(item: string): void {
+  this.toggleSelection(item, this.selectedCategories);
+}
+
   private getRecommendations(): void {
     this.loading = true;
     this.error = null;
@@ -411,5 +453,7 @@ export class MenuRecommenderComponent implements OnInit, AfterViewInit {
         this.loading = false;
       }
     });
+
+    
   }
 }

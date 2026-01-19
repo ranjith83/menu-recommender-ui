@@ -1,212 +1,410 @@
-import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
-import { BehaviorSubject, Observable, interval } from 'rxjs';
-import { Order, OrderStatus, BasketItem } from '../models/order.model';
+// services/order.service.ts - FIXED POLLING VERSION
+
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { BehaviorSubject, Observable, interval, throwError, Subscription } from 'rxjs';
+import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { isPlatformBrowser } from '@angular/common';
+import { Order, OrderStatus, BasketItem, MenuItem } from '../models/order.model';
+import { environment } from '../../enviroments/environment';
+
+// ... Keep all your interfaces (ApiResponse, OrderResponseDto, etc.)
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
+  errors?: string[];
+}
+
+interface OrderResponseDto {
+  id: number;
+  orderNumber: string;
+  tableNumber: string;
+  customerName: string;
+  language: string;
+  totalAmount: number;
+  serviceCharge: number;
+  finalAmount: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  notes?: string;
+  items: OrderItemDto[];
+  createdBy?: UserSummaryDto;
+}
+
+interface OrderItemDto {
+  id: number;
+  menuItemId: number;
+  menuItemName: string;
+  menuItemDescription?: string;
+  price: number;
+  quantity: number;
+  subtotal: number;
+  specialInstructions?: string;
+}
+
+interface UserSummaryDto {
+  id: number;
+  username: string;
+  fullName: string;
+  role: string;
+}
+
+interface CreateOrderRequest {
+  tableNumber: string;
+  customerName: string;
+  language: string;
+  notes?: string;
+  items: {
+    menuItemId: number;
+    quantity: number;
+    specialInstructions?: string;
+  }[];
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrderService {
-  private orders = new BehaviorSubject<Order[]>([]);
-  public orders$ = this.orders.asObservable();
+  private apiUrl = `${environment.apiUrl}/orders`;
+  private isBrowser: boolean;
 
+  // Observables for order state
   private currentUserOrder = new BehaviorSubject<Order | null>(null);
   public currentUserOrder$ = this.currentUserOrder.asObservable();
 
-  private isBrowser: boolean;
+  private orders = new BehaviorSubject<Order[]>([]);
+  public orders$ = this.orders.asObservable();
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  // ⚠️ REMOVED: Global polling subscription
+  // This was causing the infinite reload issue
+  // private pollingSubscription?: Subscription;
+
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
-    
-    // Only access localStorage in browser environment
+
     if (this.isBrowser) {
-      this.loadOrdersFromStorage();
-      
-      // Simulate real-time updates every 30 seconds
-      interval(30000).subscribe(() => {
-        this.simulateOrderUpdates();
+      // Load current order from localStorage on init
+      this.loadCurrentOrderFromStorage();
+
+      // ❌ REMOVED: Global polling that was causing infinite reloads
+      // The component will handle its own polling now
+      /*
+      interval(5000).pipe(
+        switchMap(() => {
+          const currentOrder = this.currentUserOrder.value;
+          if (currentOrder && !this.isOrderComplete(currentOrder.status)) {
+            return this.refreshOrderStatus(currentOrder.id);
+          }
+          return [];
+        })
+      ).subscribe({
+        error: (err) => console.error('Error refreshing order:', err)
       });
+      */
     }
   }
 
-  private loadOrdersFromStorage(): void {
-    if (!this.isBrowser) {
-      return;
-    }
-
-    try {
-      const saved = localStorage.getItem('orders');
-      if (saved) {
-        const orders = JSON.parse(saved);
-        this.orders.next(orders.map((o: any) => ({
-          ...o,
-          createdAt: new Date(o.createdAt),
-          updatedAt: new Date(o.updatedAt)
-        })));
-      }
-    } catch (e) {
-      console.error('Error loading orders:', e);
-    }
-  }
-
-  private saveOrdersToStorage(): void {
-    if (!this.isBrowser) {
-      return;
-    }
-
-    try {
-      localStorage.setItem('orders', JSON.stringify(this.orders.value));
-    } catch (e) {
-      console.error('Error saving orders:', e);
-    }
-  }
-
-  private generateOrderId(): string {
-    return `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-  }
-
+  /**
+   * Create a new order (calls backend API)
+   */
   createOrder(
-    items: BasketItem[], 
-    tableNumber: string, 
+    items: BasketItem[],
+    tableNumber: string,
     customerName: string = 'Guest',
     language: string = 'en'
-  ): Order {
-    const totalAmount = items.reduce((sum, item) => {
-      return sum + (item.menuItem.price * item.quantity);
-    }, 0);
-
-    const newOrder: Order = {
-      id: this.generateOrderId(),
+  ): Observable<Order> {
+    const request: CreateOrderRequest = {
       tableNumber,
-      items,
-      totalAmount,
-      status: OrderStatus.PENDING,
-      createdAt: new Date(),
-      updatedAt: new Date(),
       customerName,
-      language
+      language,
+      items: items.map(item => ({
+        menuItemId: item.menuItem.id,
+        quantity: item.quantity,
+        specialInstructions: item.specialInstructions || ''
+      }))
     };
 
-    const currentOrders = this.orders.value;
-    currentOrders.push(newOrder);
-    this.orders.next([...currentOrders]);
-    this.saveOrdersToStorage();
+    console.log('📤 Creating order:', request);
 
-    // Set as current user order
-    this.currentUserOrder.next(newOrder);
-    if (this.isBrowser) {
-      try {
-        localStorage.setItem('currentUserOrder', JSON.stringify(newOrder));
-      } catch (e) {
-        console.error('Error saving current user order:', e);
-      }
-    }
-
-    return newOrder;
-  }
-
-  updateOrderStatus(orderId: string, status: OrderStatus): void {
-    const currentOrders = this.orders.value;
-    const index = currentOrders.findIndex(o => o.id === orderId);
-    
-    if (index > -1) {
-      currentOrders[index].status = status;
-      currentOrders[index].updatedAt = new Date();
-      this.orders.next([...currentOrders]);
-      this.saveOrdersToStorage();
-
-      // Update current user order if it's the same
-      const currentUserOrder = this.currentUserOrder.value;
-      if (currentUserOrder && currentUserOrder.id === orderId) {
-        this.currentUserOrder.next(currentOrders[index]);
-        if (this.isBrowser) {
-          try {
-            localStorage.setItem('currentUserOrder', JSON.stringify(currentOrders[index]));
-          } catch (e) {
-            console.error('Error updating current user order:', e);
-          }
+    return this.http.post<ApiResponse<OrderResponseDto>>(this.apiUrl, request).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Failed to create order');
         }
-      }
-    }
-  }
-
-  getOrderById(orderId: string): Order | undefined {
-    return this.orders.value.find(o => o.id === orderId);
-  }
-
-  getAllOrders(): Order[] {
-    return this.orders.value;
-  }
-
-  getPendingOrders(): Order[] {
-    return this.orders.value.filter(o => o.status === OrderStatus.PENDING);
-  }
-
-  getActiveOrders(): Order[] {
-    return this.orders.value.filter(o => 
-      o.status !== OrderStatus.COMPLETED && o.status !== OrderStatus.CANCELLED
+        return this.mapDtoToOrder(response.data);
+      }),
+      tap(order => {
+        // Save as current user order
+        this.currentUserOrder.next(order);
+        this.saveCurrentOrderToStorage(order);
+        
+        console.log('✅ Order created successfully:', order.orderNumber);
+      }),
+      catchError(error => {
+        console.error('❌ Error creating order:', error);
+        return throwError(() => error);
+      })
     );
   }
 
-  loadCurrentUserOrder(): void {
-    if (!this.isBrowser) {
-      return;
+  /**
+   * Get order by ID (handles both numeric IDs and order numbers)
+   */
+  getOrderById(orderId: string): Observable<Order> {
+    const url = orderId.startsWith('ORD-')
+      ? `${this.apiUrl}/by-number/${orderId}`
+      : `${this.apiUrl}/${orderId}`;
+
+    return this.http.get<ApiResponse<OrderResponseDto>>(url).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Order not found');
+        }
+        return this.mapDtoToOrder(response.data);
+      }),
+      catchError(error => {
+        console.error('❌ Error fetching order:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get order by order number (no auth required)
+   */
+  getOrderByNumber(orderNumber: string): Observable<Order> {
+    return this.http.get<ApiResponse<OrderResponseDto>>(`${this.apiUrl}/by-number/${orderNumber}`).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Order not found');
+        }
+        return this.mapDtoToOrder(response.data);
+      }),
+      catchError(error => {
+        console.error('❌ Error fetching order by number:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get active orders (requires auth)
+   */
+  getActiveOrders(): Observable<Order[]> {
+    return this.http.get<ApiResponse<OrderResponseDto[]>>(`${this.apiUrl}/active`).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          return [];
+        }
+        return response.data.map(dto => this.mapDtoToOrder(dto));
+      }),
+      tap(orders => this.orders.next(orders)),
+      catchError(error => {
+        console.error('❌ Error fetching active orders:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Get all orders with filters (requires auth)
+   */
+  getAllOrders(
+    status?: OrderStatus,
+    tableNumber?: string,
+    pageNumber: number = 1,
+    pageSize: number = 20
+  ): Observable<Order[]> {
+    let params = new HttpParams()
+      .set('pageNumber', pageNumber.toString())
+      .set('pageSize', pageSize.toString());
+
+    if (status !== undefined) {
+      const statusValue = Object.values(OrderStatus).indexOf(status);
+      params = params.set('status', statusValue.toString());
     }
+    if (tableNumber) {
+      params = params.set('tableNumber', tableNumber);
+    }
+
+    return this.http.get<ApiResponse<OrderResponseDto[]>>(this.apiUrl, { params }).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          return [];
+        }
+        return response.data.map(dto => this.mapDtoToOrder(dto));
+      }),
+      tap(orders => this.orders.next(orders)),
+      catchError(error => {
+        console.error('❌ Error fetching orders:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Update order status (requires auth)
+   */
+  updateOrderStatus(orderId: string, status: OrderStatus, notes?: string): Observable<Order> {
+    const statusValue = Object.values(OrderStatus).indexOf(status);
+    const url = orderId.startsWith('ORD-')
+      ? `${this.apiUrl}/by-number/${orderId}/status`
+      : `${this.apiUrl}/${orderId}/status`;
+
+    return this.http.patch<ApiResponse<OrderResponseDto>>(url, { status: statusValue, notes }).pipe(
+      map(response => {
+        if (!response.success || !response.data) {
+          throw new Error(response.message || 'Failed to update order status');
+        }
+        return this.mapDtoToOrder(response.data);
+      }),
+      tap(order => {
+        // Update current order if it matches
+        const currentOrder = this.currentUserOrder.value;
+        if (currentOrder && (currentOrder.id === orderId || currentOrder.orderNumber === orderId)) {
+          this.currentUserOrder.next(order);
+          this.saveCurrentOrderToStorage(order);
+        }
+      }),
+      catchError(error => {
+        console.error('❌ Error updating order status:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Load current order from localStorage
+   */
+  loadCurrentOrderFromStorage(): void {
+    if (!this.isBrowser) return;
 
     try {
       const saved = localStorage.getItem('currentUserOrder');
       if (saved) {
         const order = JSON.parse(saved);
-        this.currentUserOrder.next({
+        const parsedOrder: Order = {
           ...order,
           createdAt: new Date(order.createdAt),
-          updatedAt: new Date(order.updatedAt)
-        });
+          updatedAt: new Date(order.updatedAt),
+          completedAt: order.completedAt ? new Date(order.completedAt) : undefined
+        };
+        
+        this.currentUserOrder.next(parsedOrder);
+        console.log('📦 Loaded order from localStorage:', parsedOrder.orderNumber);
       }
     } catch (e) {
-      console.error('Error loading current user order:', e);
+      console.error('❌ Error loading current order from storage:', e);
     }
   }
 
+  /**
+   * Save current order to localStorage (for caching only)
+   */
+  private saveCurrentOrderToStorage(order: Order): void {
+    if (!this.isBrowser) return;
+
+    try {
+      localStorage.setItem('currentUserOrder', JSON.stringify(order));
+      console.log('💾 Saved order to localStorage:', order.orderNumber);
+    } catch (e) {
+      console.error('❌ Error saving current order to storage:', e);
+    }
+  }
+
+  /**
+   * Clear current user order
+   */
   clearCurrentUserOrder(): void {
     this.currentUserOrder.next(null);
+    
     if (this.isBrowser) {
       try {
         localStorage.removeItem('currentUserOrder');
+        console.log('🗑️ Cleared current order from localStorage');
       } catch (e) {
-        console.error('Error clearing current user order:', e);
+        console.error('❌ Error clearing current order:', e);
       }
     }
   }
 
-  private simulateOrderUpdates(): void {
-    if (!this.isBrowser) {
-      return;
-    }
+  /**
+   * Load current user order (called from components)
+   */
+  loadCurrentUserOrder(): void {
+    this.loadCurrentOrderFromStorage();
+  }
 
-    // Simulate automatic order status progression for demo
-    const currentOrders = this.orders.value;
-    let updated = false;
+  /**
+   * Get pending orders (for backward compatibility)
+   */
+  getPendingOrders(): Observable<Order[]> {
+    return this.getAllOrders(OrderStatus.PENDING);
+  }
 
-    currentOrders.forEach(order => {
-      const timeSinceUpdate = Date.now() - new Date(order.updatedAt).getTime();
-      const minutesSinceUpdate = timeSinceUpdate / (1000 * 60);
+  /**
+   * Check if order is complete
+   */
+  private isOrderComplete(status: OrderStatus | string): boolean {
+    return status === OrderStatus.COMPLETED || 
+           status === OrderStatus.CANCELLED ||
+           status === 'Completed' || 
+           status === 'Cancelled';
+  }
 
-      // Auto-progress orders for demo purposes
-      if (order.status === OrderStatus.PENDING && minutesSinceUpdate > 2) {
-        order.status = OrderStatus.PREPARING;
-        order.updatedAt = new Date();
-        updated = true;
-      } else if (order.status === OrderStatus.PREPARING && minutesSinceUpdate > 5) {
-        order.status = OrderStatus.READY;
-        order.updatedAt = new Date();
-        updated = true;
-      }
-    });
+  /**
+   * Map DTO to Order model (properly typed with BasketItem[])
+   */
+  private mapDtoToOrder(dto: OrderResponseDto): Order {
+    return {
+      id: dto.orderNumber,
+      orderNumber: dto.orderNumber,
+      tableNumber: dto.tableNumber,
+      customerName: dto.customerName,
+      language: dto.language,
+      totalAmount: dto.finalAmount,
+      serviceCharge: dto.serviceCharge,
+      status: dto.status as OrderStatus,
+      createdAt: new Date(dto.createdAt),
+      updatedAt: new Date(dto.updatedAt),
+      completedAt: dto.completedAt ? new Date(dto.completedAt) : undefined,
+      notes: dto.notes,
+      createdBy: dto.createdBy,
+      items: dto.items.map(item => this.mapToBasketItem(item))
+    };
+  }
 
-    if (updated) {
-      this.orders.next([...currentOrders]);
-      this.saveOrdersToStorage();
-    }
+  /**
+   * Map API item DTO to BasketItem (matches your Order model exactly)
+   */
+  private mapToBasketItem(item: OrderItemDto): BasketItem {
+    const menuItem: MenuItem = {
+      id: item.menuItemId,
+      name: item.menuItemName,
+      description: item.menuItemDescription || '',
+      price: item.price,
+      category: '',
+      cuisine: '',
+      ingredients: [],
+      dietaryTags: [],
+      spiceLevel: '',
+      calories: 0,
+      imageUrl: '',
+      isAvailable: true,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    return {
+      menuItem,
+      quantity: item.quantity,
+      specialInstructions: item.specialInstructions || ''
+    };
   }
 }

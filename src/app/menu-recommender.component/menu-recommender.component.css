@@ -60,6 +60,30 @@ textarea:focus-visible {
 }
 
 /* ============================================
+   CATEGORIES HORIZONTAL SCROLL (UBER EATS STYLE)
+   ============================================ */
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scroll behavior */
+.overflow-x-auto {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Category button styles */
+button.flex-shrink-0 {
+  min-width: fit-content;
+}
+
+/* ============================================
    ANIMATIONS
    ============================================ */
 
@@ -133,7 +157,7 @@ button[class*="bg-gradient"],
 button[class*="bg-blue-600"],
 button[class*="bg-indigo-600"] {
   position: relative;
-  overflow: visible; /* Changed from hidden to visible for badge visibility */
+  overflow: visible;
 }
 
 button[class*="from-orange"]::before,
@@ -165,7 +189,6 @@ button[class*="bg-indigo-600"]::before {
   overflow: hidden;
 }
 
-/* Ensure button content is above the shimmer effect */
 button[class*="from-orange"] > *,
 button[class*="from-red"] > *,
 button[class*="from-green"] > *,
@@ -189,7 +212,7 @@ button[class*="bg-indigo-600"] > * {
 }
 
 /* ============================================
-   BASKET BADGE - Ensure visibility above everything
+   BASKET BADGE
    ============================================ */
 
 button span[class*="absolute"] {
@@ -197,7 +220,6 @@ button span[class*="absolute"] {
   pointer-events: none;
 }
 
-/* Make sure badge stays visible */
 button[class*="from-amber"] span[class*="bg-red"],
 button[class*="bg-gradient"] span[class*="bg-red"] {
   z-index: 20 !important;
@@ -366,6 +388,10 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   border-radius: 10px;
 }
 
+/* ============================================
+   NETFLIX-STYLE CAROUSEL
+   ============================================ */
+
 .netflix-carousel-wrapper {
   position: relative;
   margin: 0 -1rem;
@@ -378,7 +404,6 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 1rem;
-  /* Prevent vertical scroll */
   max-height: 500px;
 }
 
@@ -391,7 +416,6 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   gap: 1rem;
   width: max-content;
   padding: 0.5rem 0;
-  /* Ensure items don't wrap */
   flex-wrap: nowrap;
 }
 
@@ -399,8 +423,8 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   width: 280px;
   flex-shrink: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Prevent vertical movement */
   will-change: transform;
+  overflow: hidden;
 }
 
 .netflix-item:hover {
@@ -414,11 +438,22 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   transition: all 0.3s ease;
 }
 
+.netflix-item-image img {
+  transition: transform 0.3s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.netflix-item:hover .netflix-item-image img {
+  transform: scale(1.05);
+}
+
 .netflix-item:hover .netflix-item-image {
   background: linear-gradient(to bottom right, #fed7aa, #fecaca);
 }
 
-/* Carousel Navigation Buttons - Fixed positioning */
+/* Carousel Navigation Buttons */
 .carousel-nav-button {
   position: absolute;
   top: 50%;
@@ -434,7 +469,6 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   transition: opacity 0.3s ease, background 0.3s ease;
   opacity: 0;
   color: #1f2937;
-  /* Fix the transform to prevent movement */
   transform: translateY(-50%);
 }
 
@@ -464,10 +498,12 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
 
 .carousel-nav-button svg {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  /* Prevent SVG from scaling */
   transform: none !important;
 }
 
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
 
 @media (max-width: 1024px) {
   .grid {
@@ -500,5 +536,44 @@ button[class*="bg-gradient"] span[class*="bg-red"] {
   
   .netflix-item {
     width: 260px;
+  }
+  
+  /* Better mobile layout for filter buttons */
+  .grid-cols-2 {
+    gap: 0.5rem;
+  }
+  
+  .grid-cols-2 button {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    justify-content: flex-start;
+  }
+  
+  .grid-cols-2 button span:first-child {
+    font-size: 1rem;
+    min-width: 20px;
+    text-align: center;
+  }
+  
+  /* Categories horizontal scroll on mobile */
+  .scrollbar-hide {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Adjust sticky position for mobile header */
+  .sticky.top-\[57px\] {
+    top: 65px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Smaller category buttons on mobile */
+  button.flex-shrink-0 {
+    padding: 0.5rem 1rem;
+    font-size: 0.813rem;
+  }
+  
+  button.flex-shrink-0 span:first-child {
+    font-size: 1rem;
   }
 }

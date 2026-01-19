@@ -62,7 +62,7 @@
 
   <!-- Orders Grid -->
   <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-    <div *ngFor="let order of activeOrders" 
+    <div *ngFor="let order of activeOrders$ | async" 
          class="bg-white rounded-xl shadow-sm border-2 hover:shadow-md transition-all"
          [class.border-yellow-300]="order.status === 'Pending'"
          [class.border-blue-300]="order.status === 'Preparing'"

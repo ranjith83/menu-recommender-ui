@@ -21,7 +21,7 @@ export const routes: Routes = [
   },
   // Order status - Client-side only
   {
-    path: 'order-status',
+    path: 'order-status/:id',
     component: OrderStatusComponent,
     title: 'Order Status - Menu Genius'
   },
