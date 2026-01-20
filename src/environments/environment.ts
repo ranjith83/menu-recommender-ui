@@ -1,7 +1,8 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://localhost:7084/api'
-  
+  apiUrl: 'https://aimenu-gbhn.onrender.com/api'
+  // 'https://localhost:7084/api'
+
 };
 
 // Usage in service:
